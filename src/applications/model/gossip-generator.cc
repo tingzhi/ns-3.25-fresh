@@ -45,6 +45,7 @@ GossipGenerator::GossipGenerator ()
   halt = false;
   gossip_delta_t = Seconds(0.001);
   solicit_delta_t = Seconds(5);
+  // source = src;
 }
 
 GossipGenerator::~GossipGenerator ()
@@ -66,6 +67,30 @@ GossipGenerator::SendMessage_debug(Ipv4Address src, Ipv4Address dest, int type)
   SendPayload( src,  dest);
 }
 */
+
+void
+GossipGenerator::GetEnergySourceContainer (EnergySourceContainer sources)
+{
+  src = sources;
+
+}
+
+
+void
+GossipGenerator::GetEnergySource () 
+{
+  Ptr<EnergySource> source = this->GetNode()->GetObject<EnergySource>();
+  if (source == NULL) 
+    std::cout << "Error!!!!" << std::endl;
+  else 
+     energySource = source;
+  std::cout << "Here!!!!!" << std::endl;
+  /*std::cout << "energy fraction of " << std::endl;
+  std::cout << this->GetNode()->GetId() << std::endl;
+  std::cout << " is " << std::endl;
+  std::cout << energySource->GetEnergyFraction() << "!!!!!!!" << std::endl;  
+*/
+ }
 
 void
 GossipGenerator::AddNeighbor(Ipv4Address own,Ipv4Address neighbor)
@@ -119,6 +144,51 @@ GossipGenerator::HandlePayload(Ipv4Address src,Ipv4Address dest,uint8_t payload_
     ReceivedData = Simulator::Now ();
   }
 }
+
+/*
+int calFanout (double remainingEnergyPercentage, std::vector<neighbors> neighborList, int nodeIndex) {
+  int fanout = 0;
+  
+  EnergySourceContainer sources;
+  Ptr<EnergySource> source = this;
+  sources.Get(0)->GetEnergyFraction();
+  
+  
+  
+
+  if (remainingEnergyPercentage >= 0.8)
+    fanout = 5;
+  else if (remainingEnergyPercentage >= 0.6)
+    fanout = 4;
+  else if (remainingEnergyPercentage >= 0.4)
+    fanout = 3;
+  else if (remainingEnergyPercentage >= 0.2)
+    fanout = 2;
+  else
+    fanout = 1;
+
+  std::cout << "Here!!!!" << std::endl;
+  std::cout << "Initial fanout was " << fanout << std::endl;
+  //std::vector<neighbors>::iterator nb = neighborList.begin();
+  std::cout << "node " << nodeIndex << "'s neighborNode size is " << neighborList.at(nodeIndex).neighborNodes.size() << std::endl;
+
+//  std::cout << "neighborlist size is " << nb->neighborNodes.size() << std::endl;
+  std::cout << "fanout is " << std::min(fanout, (int)neighborList.at(nodeIndex).neighborNodes.size()) << std::endl;
+  return std::min(fanout, (int)neighborList.at(nodeIndex).neighborNodes.size());
+}
+*/
+
+/*
+void GossipGenerator::printEnergyFraction (Ptr<EnergySource> source) {
+  //Ptr<EnergySource> source = this->GetNode()->GetObject();
+  std::cout << source->GetEnergyFraction() << std::endl;
+}
+
+void
+GossipGenerator::ChooseNeighbors () {
+
+}
+*/
 
 void
 GossipGenerator::ChooseRandomNeighbor(Ipv4Address ipv4array[2]){
@@ -189,6 +259,13 @@ GossipGenerator::SetCurrentValue ( int val )
   NS_LOG_INFO ("Value of node set to " << CurrentValue);
 }
 
+/*
+void 
+GossipGenerator::SetEnergySource (Ptr<EnergySource> src){
+  source = src;
+}
+*/
+
 void
 GossipGenerator::SetSolicitInterval ( Time val )
 {
@@ -201,6 +278,13 @@ GossipGenerator::SetGossipInterval ( Time val )
 {
   NS_LOG_FUNCTION (this << val);
   gossip_delta_t = val;
+}
+
+std::vector<Ipv4Address> 
+GossipGenerator::GetNeighbours (void)
+{
+  //return neighbours[0]; // return the own ipv4 address vector
+  return neighbours[1];  // return neighbours ipv4 addresses vector
 }
 
 int

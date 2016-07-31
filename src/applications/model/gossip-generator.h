@@ -29,6 +29,8 @@
 #include "ns3/nstime.h"
 #include "ns3/simulator.h"
 
+#include "ns3/energy-module.h"
+
 namespace ns3 {
 
   const uint8_t TYPE_SOLICIT = 21; //!< constant used to indicate type of msg
@@ -63,6 +65,11 @@ public:
    * \brief add a neighbor
    * \param ip of the neighbor
    */
+  
+ // void printEnergyFraction (Ptr<EnergySource> source);
+  
+  void GetEnergySourceContainer (EnergySourceContainer sources);
+
   void AddNeighbor( Ipv4Address own,Ipv4Address neighbor );
 
   /**
@@ -93,6 +100,11 @@ public:
    * \brief Return the current internal value.
    * \return The value
    */
+  
+  //void SetEnergySource (Ptr<EnergySource> src);
+  
+  std::vector<Ipv4Address> GetNeighbours (void);
+  
   int GetCurrentValue ( void);
 
   /**
@@ -134,6 +146,8 @@ public:
    * \param the payload
    */
   void HandlePayload(Ipv4Address src,Ipv4Address dest,uint8_t payload[]);
+  
+   void GetEnergySource (); 
 
 protected:
   /**
@@ -155,6 +169,8 @@ protected:
    * \param the destination
    */
   void SendPayload(Ipv4Address src, Ipv4Address dest);
+  
+ 
 
   int CurrentValue; //!< The current Value
   bool halt; //!< If the gossip is paused
@@ -164,7 +180,10 @@ protected:
   int SentMessages; //!< Amount of messages sent out
   int PacketHops; //!< How many hops the data packet experienced
   std::vector<Ipv4Address> neighbours[2]; //!< The own addresses and corresponding neighbors of this node
-
+  //Ptr<EnergySource> source;
+  EnergySourceContainer src;
+  Ptr<EnergySource> energySource;
+  
 private:
   /**
    * \brief Start the GossipProcess

@@ -245,6 +245,15 @@ updateFanout (EnergySourceContainer sources, std::vector<neighbors> neighborList
   return ret;
 }
 
+//TODO: using energy to control fanout of gossip
+
+void
+updateEnergyFraction (EnergySourceContainer sources) {
+  Simulator::Schedule (Seconds(2), &updateEnergyFraction, sources);
+  std::cout << "energy fraction is " << sources.Get(0)->GetEnergyFraction() << std::endl;
+
+}
+
 Ptr<GossipGenerator> GetGossipApp(Ptr <Node> node)
 {
   Ptr< Application > gossipApp = node->GetApplication (0) ;
@@ -386,14 +395,15 @@ int main (int argc, char *argv[])
   Time SolicitInterval = Seconds(5); //not planning on using this attribute
   ApplicationContainer nodeApps; 
   
-  nodeApps = ggh.Install(c); // install gossip generator on all nodes
-  
+//  nodeApps = ggh.Install(c, sources); // install gossip generator on all nodes
+  nodeApps = ggh.Install(c);
   //GetGossipApp(c.Get(0))->AddNeighbor(i.GetAddress(0), i.GetAddress(1));
 //  GetGossipApp(nodes2.Get(Edge1))->AddNeighbor(InterfaceCont.GetAddress(0),InterfaceCont.GetAddress(1));
 
 
 // print out every nodes' position
 //NodeContainer const & n = NodeContainer::GetGlobal (); 
+//  int ctr = 0;
   for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i) 
   { 
       Ptr<Node> node = *i; 
@@ -402,10 +412,12 @@ int main (int argc, char *argv[])
       if (! mob) continue; // Strange -- node has no mobility model installed. Skip. 
       Vector pos = mob->GetPosition (); 
       
+      
       Ptr<Ipv4> ipv4 = node->GetObject<Ipv4>();
       Ipv4InterfaceAddress iaddr = ipv4->GetAddress(1,0);
       Ipv4Address addri = iaddr.GetLocal();
 
+ 
       std::cout << "Node " << node->GetId() << " is at (" << pos.x << ", " << pos.y << ", " << pos.z << ")\n"; 
       std::cout << "Node " << node->GetId() << "'s IP address is " << addri << "\n";
   } 
@@ -424,6 +436,13 @@ int main (int argc, char *argv[])
     }
   }
   
+  std::cout << "Test neighbor list stored in gossip protocol!" << std::endl;
+  for (unsigned int i = 0; i < GetGossipApp(c.Get(0))->GetNeighbours().size(); i++){
+    std::cout << GetGossipApp(c.Get(0))->GetNeighbours()[i] << std::endl; 
+  }
+  
+  GetGossipApp(c.Get(1))->GetEnergySource();
+  
   for ( uint32_t i=0; i<numNodes;++i)
   { //TODO use attributes
     Ptr<GossipGenerator> ii = GetGossipApp(c.Get(i));
@@ -433,6 +452,8 @@ int main (int argc, char *argv[])
 
   Ptr<GossipGenerator> a = GetGossipApp(c.Get(0));
   a->SetCurrentValue( 2 );
+  
+  
   
 /*
   calFanout (0.8, neighborList, 2);
@@ -493,6 +514,14 @@ int main (int argc, char *argv[])
   //Simulator::Schedule (Seconds(5.0), &updateFanout, sources, neighborList, 1);
   //Simulator::Schedule (update_delta_t, &calFanout, 0.7, neighborList, 1);
   //Simulator::Schedule (Seconds (10.0), &printNeighbors, neighbor);
+
+  //Ptr<BasicEnergySource> energySource = DynamicCast<BasicEnergySource> (sources.Get(0));
+  //std::cout << "energy fraction is " << energySource->GetEnergyFraction() << std::endl;
+  
+  std::cout << "energy fraction is " << sources.Get(0)->GetEnergyFraction() << std::endl;
+  
+  //Simulator::Schedule (Seconds(0.5), &(sources.Get(0)->GetEnergyFraction()));
+    Simulator::Schedule (Seconds(2), &updateEnergyFraction, sources);
 
   // Output what we are doing
   //NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with RandomRectanglePositionAllocator 100 by 100");
