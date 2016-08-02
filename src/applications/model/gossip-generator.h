@@ -147,7 +147,15 @@ public:
    */
   void HandlePayload(Ipv4Address src,Ipv4Address dest,uint8_t payload[]);
   
-   void GetEnergySource (); 
+  void GetEnergySource (Ptr<EnergySource> testSrc); 
+  
+  unsigned int calFanout ();
+  
+  std::vector<int> ChooseNeighbors ();
+   
+  EnergySourceContainer src;
+  Ptr<EnergySource> energySource;
+  Ptr<EnergySource> srcPtr;
 
 protected:
   /**
@@ -181,8 +189,7 @@ protected:
   int PacketHops; //!< How many hops the data packet experienced
   std::vector<Ipv4Address> neighbours[2]; //!< The own addresses and corresponding neighbors of this node
   //Ptr<EnergySource> source;
-  EnergySourceContainer src;
-  Ptr<EnergySource> energySource;
+  
   
 private:
   /**

@@ -77,6 +77,7 @@
 
 #include "ns3/gossip-generator.h"
 #include "ns3/gossip-generator-helper.h"
+#include "src/network/model/node.h"
 
 
 #include <iostream>
@@ -265,7 +266,7 @@ int main (int argc, char *argv[])
   std::string phyMode ("DsssRate1Mbps");
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 1;
-  uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
+  uint32_t numNodes = 30;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
 //  uint32_t sinkNode = 0;
 //  uint32_t sourceNode = 9;
   double interval = 1.0; // seconds
@@ -384,11 +385,21 @@ int main (int argc, char *argv[])
   //internet.SetRoutingHelper (list); // has effect on the next Install ()
   internet.Install (c);
 
+ 
+  
+  
   Ipv4AddressHelper ipv4;
   NS_LOG_INFO ("Assign IP Addresses.");
   ipv4.SetBase ("10.1.1.0", "255.255.255.0");
   Ipv4InterfaceContainer ipv4Inter = ipv4.Assign (devices);
 
+  
+ 
+   for (unsigned int i = 0; i < numNodes; i++) {
+     
+    std::cout << sources.Get(i)->GetNode()->GetId() << " && " << sources.Get(i)->GetNode()->GetObject<Ipv4>()->GetAddress(1,0).GetLocal() << std::endl;
+  }
+  
   
   GossipGeneratorHelper ggh ;
   Time GossipInterval = Seconds(.5); // Must be larger than the round-trip-time! (c.f. LinkDelay)
@@ -416,8 +427,7 @@ int main (int argc, char *argv[])
       Ptr<Ipv4> ipv4 = node->GetObject<Ipv4>();
       Ipv4InterfaceAddress iaddr = ipv4->GetAddress(1,0);
       Ipv4Address addri = iaddr.GetLocal();
-
- 
+      
       std::cout << "Node " << node->GetId() << " is at (" << pos.x << ", " << pos.y << ", " << pos.z << ")\n"; 
       std::cout << "Node " << node->GetId() << "'s IP address is " << addri << "\n";
   } 
@@ -441,7 +451,16 @@ int main (int argc, char *argv[])
     std::cout << GetGossipApp(c.Get(0))->GetNeighbours()[i] << std::endl; 
   }
   
-  GetGossipApp(c.Get(1))->GetEnergySource();
+  
+  //GetGossipApp(c.Get(1))->GetEnergySourceContainer(sources);
+  for (unsigned int i = 0; i < numNodes; i++) {
+    GetGossipApp(c.Get(i))->GetEnergySource(sources.Get(i));
+  }
+  
+  //GetGossipApp(c.Get(9))->calFanout();
+  for (int i = 0; i < 2; i++){
+    GetGossipApp(c.Get(1))->ChooseNeighbors();
+  }
   
   for ( uint32_t i=0; i<numNodes;++i)
   { //TODO use attributes

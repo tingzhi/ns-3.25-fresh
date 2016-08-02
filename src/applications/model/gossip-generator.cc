@@ -77,20 +77,50 @@ GossipGenerator::GetEnergySourceContainer (EnergySourceContainer sources)
 
 
 void
-GossipGenerator::GetEnergySource () 
+GossipGenerator::GetEnergySource (Ptr<EnergySource> testSrc) 
 {
-  Ptr<EnergySource> source = this->GetNode()->GetObject<EnergySource>();
-  if (source == NULL) 
-    std::cout << "Error!!!!" << std::endl;
-  else 
-     energySource = source;
-  std::cout << "Here!!!!!" << std::endl;
-  /*std::cout << "energy fraction of " << std::endl;
-  std::cout << this->GetNode()->GetId() << std::endl;
-  std::cout << " is " << std::endl;
-  std::cout << energySource->GetEnergyFraction() << "!!!!!!!" << std::endl;  
-*/
+  srcPtr = testSrc;
+//  std::cout << "Energy Node: " << this->GetNode()->GetId() << std::endl;
+//  Ptr<EnergySource> source = src.Get(this->GetNode()->GetId());
+////  this->GetNode()->GetObject<EnergySource>();
+//  if (source == NULL) 
+//    std::cout << "Error!!!!" << std::endl;
+//  else 
+//     energySource = source;
+//  std::cout << "Here!!!!!" << std::endl;
+//  std::cout << "Energy fraction of node " << this->GetNode()->GetId() << " is " << srcPtr->GetEnergyFraction() << "!!!!!!!" << std::endl;  
+
  }
+
+unsigned int 
+GossipGenerator::calFanout () {
+  unsigned int fanout = 0;
+  double remainingEnergyPercentage = srcPtr->GetEnergyFraction();
+  
+  if (remainingEnergyPercentage >= 0.8)
+    fanout = 5;
+  else if (remainingEnergyPercentage >= 0.6)
+    fanout = 4;
+  else if (remainingEnergyPercentage >= 0.4)
+    fanout = 3;
+  else if (remainingEnergyPercentage >= 0.2)
+    fanout = 2;
+  else
+    fanout = 1;
+
+  std::cout << "Here!!!!" << std::endl;
+  std::cout << "Initial fanout was " << fanout << std::endl;
+  //std::vector<neighbors>::iterator nb = neighborList.begin();
+  //std::cout << "node " << nodeIndex << "'s neighborNode size is " << neighborList.at(nodeIndex).neighborNodes.size() << std::endl;
+
+//  std::cout << "neighborlist size is " << nb->neighborNodes.size() << std::endl;
+  std::cout << "fanout is " << std::min(fanout, (unsigned int)neighbours[1].size()) << std::endl;
+  unsigned int ret = (unsigned int) std::min(fanout, (unsigned int)neighbours[1].size());
+  return ret;
+//  return std::min(fanout, (int)neighbours[1].size());
+}
+
+
 
 void
 GossipGenerator::AddNeighbor(Ipv4Address own,Ipv4Address neighbor)
@@ -145,50 +175,44 @@ GossipGenerator::HandlePayload(Ipv4Address src,Ipv4Address dest,uint8_t payload_
   }
 }
 
-/*
-int calFanout (double remainingEnergyPercentage, std::vector<neighbors> neighborList, int nodeIndex) {
-  int fanout = 0;
-  
-  EnergySourceContainer sources;
-  Ptr<EnergySource> source = this;
-  sources.Get(0)->GetEnergyFraction();
-  
-  
-  
 
-  if (remainingEnergyPercentage >= 0.8)
-    fanout = 5;
-  else if (remainingEnergyPercentage >= 0.6)
-    fanout = 4;
-  else if (remainingEnergyPercentage >= 0.4)
-    fanout = 3;
-  else if (remainingEnergyPercentage >= 0.2)
-    fanout = 2;
-  else
-    fanout = 1;
-
-  std::cout << "Here!!!!" << std::endl;
-  std::cout << "Initial fanout was " << fanout << std::endl;
-  //std::vector<neighbors>::iterator nb = neighborList.begin();
-  std::cout << "node " << nodeIndex << "'s neighborNode size is " << neighborList.at(nodeIndex).neighborNodes.size() << std::endl;
-
-//  std::cout << "neighborlist size is " << nb->neighborNodes.size() << std::endl;
-  std::cout << "fanout is " << std::min(fanout, (int)neighborList.at(nodeIndex).neighborNodes.size()) << std::endl;
-  return std::min(fanout, (int)neighborList.at(nodeIndex).neighborNodes.size());
-}
-*/
 
 /*
 void GossipGenerator::printEnergyFraction (Ptr<EnergySource> source) {
   //Ptr<EnergySource> source = this->GetNode()->GetObject();
   std::cout << source->GetEnergyFraction() << std::endl;
 }
-
-void
-GossipGenerator::ChooseNeighbors () {
-
-}
 */
+
+std::vector<int>
+GossipGenerator::ChooseNeighbors () {
+  int in, im;
+  int fanout = (int)calFanout();
+  int neighborSize = (int)neighbours[1].size();
+  
+  im = 0;
+  std::vector<int> vec;
+  
+  Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+  
+  for (in = 0; in < neighborSize && im < fanout; ++in) {
+    int rn = neighborSize - in;
+    int rm = fanout - im;
+    if ((unsigned int)(x->GetValue(0.0, (double)rn-1)) < (unsigned int)rm){
+      //vec[im++] = in + 1;
+      vec.push_back(in);
+      im++;
+    }
+  }
+  std::cout << "the random vector is " << std::endl;
+  for (unsigned int i = 0; i < vec.size(); i++) {
+    std::cout << vec[i] << " ";
+  }
+  std::cout << std::endl;
+  
+  return vec;
+}
+
 
 void
 GossipGenerator::ChooseRandomNeighbor(Ipv4Address ipv4array[2]){
@@ -327,6 +351,8 @@ GossipGenerator::GossipProcess(void)
       Ipv4Address ipv4array[2];
       ChooseRandomNeighbor(ipv4array);
       SendPayload(ipv4array[0],ipv4array[1]);
+//      std::vector<int> dest_vector;
+//      dest_vector = ChooseNeighbors();
     }
   }
 }
