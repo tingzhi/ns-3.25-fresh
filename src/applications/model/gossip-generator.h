@@ -156,6 +156,7 @@ public:
   EnergySourceContainer src;
   Ptr<EnergySource> energySource;
   Ptr<EnergySource> srcPtr;
+  Ptr<UniformRandomVariable> x;
 
 protected:
   /**
@@ -189,6 +190,8 @@ protected:
   int PacketHops; //!< How many hops the data packet experienced
   std::vector<Ipv4Address> neighbours[2]; //!< The own addresses and corresponding neighbors of this node
   //Ptr<EnergySource> source;
+  
+  
   
   
 private:

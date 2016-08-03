@@ -45,6 +45,7 @@ GossipGenerator::GossipGenerator ()
   halt = false;
   gossip_delta_t = Seconds(0.001);
   solicit_delta_t = Seconds(5);
+  x = CreateObject<UniformRandomVariable> ();
   // source = src;
 }
 
@@ -193,7 +194,7 @@ GossipGenerator::ChooseNeighbors () {
   im = 0;
   std::vector<int> vec;
   
-  Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+  
   
   for (in = 0; in < neighborSize && im < fanout; ++in) {
     int rn = neighborSize - in;
@@ -204,6 +205,8 @@ GossipGenerator::ChooseNeighbors () {
       im++;
     }
   }
+  
+  
   std::cout << "CHOOSE NEIGHBORS: the random index vector is " << std::endl;
   for (unsigned int i = 0; i < vec.size(); i++) {
     std::cout << vec[i] << " ";
@@ -304,6 +307,7 @@ GossipGenerator::SetGossipInterval ( Time val )
   gossip_delta_t = val;
 }
 
+
 std::vector<Ipv4Address> 
 GossipGenerator::GetNeighbours (void)
 {
@@ -354,10 +358,15 @@ GossipGenerator::GossipProcess(void)
       std::vector<int> dest_vector;
       dest_vector = ChooseNeighbors();
       
+      std::cout << "dest_vector content" << std::endl;
+      for (unsigned int i = 0; i < dest_vector.size(); i++) {
+        std::cout << dest_vector[i] << " " ;
+      }
+      
       std::cout << "GOSSIP PROCESS: The source node ip is " << neighbours[0].at(0) << std::endl;
       for (unsigned int i = 0; i < dest_vector.size(); i++) {
         SendPayload(neighbours[0].at(0), neighbours[1].at(dest_vector[i]));
-        std::cout << "GOSSIP PROCESS: The dest node ip is " << neighbours[1].at(i) << std::endl;
+        std::cout << "GOSSIP PROCESS: The dest node ip is " << neighbours[1].at(dest_vector[i]) << std::endl;
       }
     }
   }

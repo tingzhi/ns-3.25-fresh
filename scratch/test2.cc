@@ -266,7 +266,7 @@ int main (int argc, char *argv[])
   std::string phyMode ("DsssRate1Mbps");
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 1;
-  uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
+  uint32_t numNodes = 15;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
 //  uint32_t sinkNode = 0;
 //  uint32_t sourceNode = 9;
   double interval = 1.0; // seconds
@@ -457,7 +457,7 @@ int main (int argc, char *argv[])
     GetGossipApp(c.Get(i))->GetEnergySource(sources.Get(i));
   }
   
-  //GetGossipApp(c.Get(9))->calFanout();
+//  GetGossipApp(c.Get(9))->calFanout();
 //  for (int i = 0; i < 10; i++){
 //    GetGossipApp(c.Get(1))->ChooseNeighbors();
 //  }
