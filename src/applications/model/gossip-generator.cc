@@ -108,13 +108,13 @@ GossipGenerator::calFanout () {
   else
     fanout = 1;
 
-  std::cout << "Here!!!!" << std::endl;
-  std::cout << "Initial fanout was " << fanout << std::endl;
+//  std::cout << "Here!!!!" << std::endl;
+//  std::cout << "Initial fanout was " << fanout << std::endl;
   //std::vector<neighbors>::iterator nb = neighborList.begin();
   //std::cout << "node " << nodeIndex << "'s neighborNode size is " << neighborList.at(nodeIndex).neighborNodes.size() << std::endl;
 
 //  std::cout << "neighborlist size is " << nb->neighborNodes.size() << std::endl;
-  std::cout << "fanout is " << std::min(fanout, (unsigned int)neighbours[1].size()) << std::endl;
+  std::cout << "FANOUT: fanout for node " << this->GetNode()->GetId() << " is " << std::min(fanout, (unsigned int)neighbours[1].size()) << std::endl;
   unsigned int ret = (unsigned int) std::min(fanout, (unsigned int)neighbours[1].size());
   return ret;
 //  return std::min(fanout, (int)neighbours[1].size());
@@ -204,7 +204,7 @@ GossipGenerator::ChooseNeighbors () {
       im++;
     }
   }
-  std::cout << "the random vector is " << std::endl;
+  std::cout << "CHOOSE NEIGHBORS: the random index vector is " << std::endl;
   for (unsigned int i = 0; i < vec.size(); i++) {
     std::cout << vec[i] << " ";
   }
@@ -348,11 +348,17 @@ GossipGenerator::GossipProcess(void)
     Simulator::Schedule (gossip_delta_t, &GossipGenerator::GossipProcess,this);
     if (  CurrentValue != 0 )
     {
-      Ipv4Address ipv4array[2];
-      ChooseRandomNeighbor(ipv4array);
-      SendPayload(ipv4array[0],ipv4array[1]);
-//      std::vector<int> dest_vector;
-//      dest_vector = ChooseNeighbors();
+//      Ipv4Address ipv4array[2];
+//      ChooseRandomNeighbor(ipv4array);
+//      SendPayload(ipv4array[0],ipv4array[1]);
+      std::vector<int> dest_vector;
+      dest_vector = ChooseNeighbors();
+      
+      std::cout << "GOSSIP PROCESS: The source node ip is " << neighbours[0].at(0) << std::endl;
+      for (unsigned int i = 0; i < dest_vector.size(); i++) {
+        SendPayload(neighbours[0].at(0), neighbours[1].at(dest_vector[i]));
+        std::cout << "GOSSIP PROCESS: The dest node ip is " << neighbours[1].at(i) << std::endl;
+      }
     }
   }
 }

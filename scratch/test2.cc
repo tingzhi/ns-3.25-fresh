@@ -266,7 +266,7 @@ int main (int argc, char *argv[])
   std::string phyMode ("DsssRate1Mbps");
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 1;
-  uint32_t numNodes = 30;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
+  uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
 //  uint32_t sinkNode = 0;
 //  uint32_t sourceNode = 9;
   double interval = 1.0; // seconds
@@ -395,10 +395,10 @@ int main (int argc, char *argv[])
 
   
  
-   for (unsigned int i = 0; i < numNodes; i++) {
-     
-    std::cout << sources.Get(i)->GetNode()->GetId() << " && " << sources.Get(i)->GetNode()->GetObject<Ipv4>()->GetAddress(1,0).GetLocal() << std::endl;
-  }
+//   for (unsigned int i = 0; i < numNodes; i++) {
+//     
+//    std::cout << sources.Get(i)->GetNode()->GetId() << " && " << sources.Get(i)->GetNode()->GetObject<Ipv4>()->GetAddress(1,0).GetLocal() << std::endl;
+//  }
   
   
   GossipGeneratorHelper ggh ;
@@ -439,17 +439,17 @@ int main (int argc, char *argv[])
   // for each node, add their neighbors
 
   for (unsigned int j = 0; j < neighborList.size(); j++){
-    std::cout << "Working on node " << neighborList[j].sourceNode << std::endl;
+//    std::cout << "Working on node " << neighborList[j].sourceNode << std::endl;
     for (unsigned int i = 0; i < neighborList[j].neighborNodes.size(); i++) {
       GetGossipApp(c.Get(neighborList[j].sourceNode))->AddNeighbor(ipv4Inter.GetAddress(neighborList[j].sourceNode), ipv4Inter.GetAddress(neighborList[j].neighborNodes[i]));
-      std::cout << "The neighbor nodes are " << neighborList[j].neighborNodes[i] << std::endl;
+//      std::cout << "The neighbor nodes are " << neighborList[j].neighborNodes[i] << std::endl;
     }
   }
   
-  std::cout << "Test neighbor list stored in gossip protocol!" << std::endl;
-  for (unsigned int i = 0; i < GetGossipApp(c.Get(0))->GetNeighbours().size(); i++){
-    std::cout << GetGossipApp(c.Get(0))->GetNeighbours()[i] << std::endl; 
-  }
+//  std::cout << "Test neighbor list stored in gossip protocol!" << std::endl;
+//  for (unsigned int i = 0; i < GetGossipApp(c.Get(0))->GetNeighbours().size(); i++){
+//    std::cout << GetGossipApp(c.Get(0))->GetNeighbours()[i] << std::endl; 
+//  }
   
   
   //GetGossipApp(c.Get(1))->GetEnergySourceContainer(sources);
@@ -458,9 +458,9 @@ int main (int argc, char *argv[])
   }
   
   //GetGossipApp(c.Get(9))->calFanout();
-  for (int i = 0; i < 2; i++){
-    GetGossipApp(c.Get(1))->ChooseNeighbors();
-  }
+//  for (int i = 0; i < 10; i++){
+//    GetGossipApp(c.Get(1))->ChooseNeighbors();
+//  }
   
   for ( uint32_t i=0; i<numNodes;++i)
   { //TODO use attributes
@@ -537,10 +537,10 @@ int main (int argc, char *argv[])
   //Ptr<BasicEnergySource> energySource = DynamicCast<BasicEnergySource> (sources.Get(0));
   //std::cout << "energy fraction is " << energySource->GetEnergyFraction() << std::endl;
   
-  std::cout << "energy fraction is " << sources.Get(0)->GetEnergyFraction() << std::endl;
+//  std::cout << "energy fraction is " << sources.Get(0)->GetEnergyFraction() << std::endl;
   
   //Simulator::Schedule (Seconds(0.5), &(sources.Get(0)->GetEnergyFraction()));
-    Simulator::Schedule (Seconds(2), &updateEnergyFraction, sources);
+//    Simulator::Schedule (Seconds(2), &updateEnergyFraction, sources);
 
   // Output what we are doing
   //NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with RandomRectanglePositionAllocator 100 by 100");
