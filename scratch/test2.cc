@@ -79,6 +79,8 @@
 #include "ns3/gossip-generator-helper.h"
 #include "src/network/model/node.h"
 
+#include "ns3/log.h"
+
 
 #include <iostream>
 #include <fstream>
@@ -360,6 +362,7 @@ Ptr<GossipGenerator> GetGossipApp(Ptr <Node> node)
 
 int main (int argc, char *argv[])
 {
+//  NS_LOG_FUNCTION(this);
   std::string phyMode ("DsssRate1Mbps");
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 1;
