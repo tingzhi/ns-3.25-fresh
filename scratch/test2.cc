@@ -646,8 +646,8 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
   // Output what we are doing
   //NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with RandomRectanglePositionAllocator 100 by 100");
 
-  //Simulator::Stop (Seconds (30.0));
-  
+  Simulator::Stop (Seconds (30.0));
+  //Simulator::Stop();
   Simulator::Run ();
   
   NS_LOG_INFO(endl << " ---- Print results ---" << endl);
@@ -675,8 +675,7 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
   NS_LOG_INFO("Average amount of sent messages per node: " << AvgMessagesPerNode);
   NS_LOG_INFO("Time until information was spread: " << MaxTime.GetSeconds() << "s" << endl);
   simstats ret(MaxTime.GetSeconds(),MaxHops,AvgMessagesPerNode);
-//  Simulator::Destroy ();
-//  return ret;
+
   
   
   Simulator::Destroy ();
