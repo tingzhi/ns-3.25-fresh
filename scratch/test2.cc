@@ -646,7 +646,7 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
   // Output what we are doing
   //NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with RandomRectanglePositionAllocator 100 by 100");
 
-  Simulator::Stop (Seconds (30.0));
+  //Simulator::Stop (Seconds (30.0));
   
   Simulator::Run ();
   
