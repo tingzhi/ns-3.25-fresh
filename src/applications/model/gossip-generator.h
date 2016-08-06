@@ -157,6 +157,7 @@ public:
   Ptr<EnergySource> energySource;
   Ptr<EnergySource> srcPtr;
   Ptr<UniformRandomVariable> x;
+  Ptr<UniformRandomVariable> y; // used for ChooseRandomNeighbor function
 
 protected:
   /**

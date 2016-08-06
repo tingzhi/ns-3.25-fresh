@@ -85,12 +85,78 @@
 #include <vector>
 #include <string>
 
+// C++ program to print DFS traversal from a given vertex in a  given graph
+#include <list>
+
 using namespace ns3;
 
 struct neighbors {
   uint32_t sourceNode;
   std::vector<uint32_t> neighborNodes; 
 };
+ 
+// Graph class represents a directed graph using adjacency list representation
+class Graph
+{
+    int V;    // No. of vertices
+    std::list<int> *adj;    // Pointer to an array containing adjacency lists
+    std::vector<int> visitedList;
+    void DFSUtil(int v, bool visited[]);  // A function used by DFS
+public:
+    Graph(int V);   // Constructor
+    void addEdge(int v, int w);   // function to add an edge to graph
+    void DFS(int v);    // DFS traversal of the vertices reachable from v
+    int IsConnected();
+};
+ 
+Graph::Graph(int V)
+{
+    this->V = V;
+    adj = new std::list<int>[V];
+}
+ 
+void Graph::addEdge(int v, int w)
+{
+    adj[v].push_back(w); // Add w to v’s list.
+}
+ 
+void Graph::DFSUtil(int v, bool visited[])
+{
+    // Mark the current node as visited and print it
+    visited[v] = true;
+    std::cout << v << " ";
+    visitedList.push_back(v);
+ 
+    // Recur for all the vertices adjacent to this vertex
+    std::list<int>::iterator i;
+    for (i = adj[v].begin(); i != adj[v].end(); ++i)
+        if (!visited[*i])
+            DFSUtil(*i, visited);
+}
+
+int Graph::IsConnected () {
+  if (visitedList.size() == (unsigned int)V) {
+    std::cout << "This is a connected graph." << std::endl;
+    return 1;
+  }
+  else {
+    std::cout << "This is NOT a connected graph." << std::endl;
+    return 0;
+  }
+}
+
+// DFS traversal of the vertices reachable from v. It uses recursive DFSUtil()
+void Graph::DFS(int v)
+{
+    // Mark all the vertices as not visited
+    bool *visited = new bool[V];
+    for (int i = 0; i < V; i++)
+        visited[i] = false;
+ 
+    // Call the recursive helper function to print DFS traversal
+    DFSUtil(v, visited);
+}
+ 
 
 
 //neighbors makeNeighbors (Ptr<Node>, std::vector<int>);
@@ -266,7 +332,7 @@ int main (int argc, char *argv[])
   std::string phyMode ("DsssRate1Mbps");
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 1;
-  uint32_t numNodes = 15;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
+  uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
 //  uint32_t sinkNode = 0;
 //  uint32_t sourceNode = 9;
   double interval = 1.0; // seconds
@@ -299,6 +365,8 @@ int main (int argc, char *argv[])
   Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode", 
                       StringValue (phyMode));
 
+  
+  
   NodeContainer c;
   c.Create (numNodes);
 
@@ -402,8 +470,8 @@ int main (int argc, char *argv[])
   
   
   GossipGeneratorHelper ggh ;
-  Time GossipInterval = Seconds(.5); // Must be larger than the round-trip-time! (c.f. LinkDelay)
-  Time SolicitInterval = Seconds(5); //not planning on using this attribute
+  Time GossipInterval = Seconds(0.5); // Must be larger than the round-trip-time! (c.f. LinkDelay)
+  Time SolicitInterval = Seconds(1.0); //not planning on using this attribute
   ApplicationContainer nodeApps; 
   
 //  nodeApps = ggh.Install(c, sources); // install gossip generator on all nodes
@@ -436,6 +504,33 @@ int main (int argc, char *argv[])
   neighborList = getNeighbors (c, maxRange);
   printNeighborList (neighborList);
   
+  
+  Graph g(numNodes);
+  for (int i = 0; i < (int)numNodes; i++) {
+    for (unsigned int j = 0; j < neighborList[i].neighborNodes.size(); j++){
+      g.addEdge(i, neighborList[i].neighborNodes[j]);
+    }
+    
+  }
+//    g.addEdge(0, 1);
+//    g.addEdge(0, 2);
+//    g.addEdge(1, 2);
+//    g.addEdge(2, 0);
+//    g.addEdge(2, 3);
+//    g.addEdge(3, 3);
+ 
+    std::cout << "Following is Depth First Traversal (starting from vertex(node) 0) \n";
+    g.DFS(0);
+    int isConnected = g.IsConnected();
+    if (isConnected == 1)
+      std::cout << "Connected" << std::endl;
+    else {
+      std::cout << "NOT Connected" << std::endl;
+      return 0;
+    }
+//    return 0;
+    
+    
   // for each node, add their neighbors
 
   for (unsigned int j = 0; j < neighborList.size(); j++){

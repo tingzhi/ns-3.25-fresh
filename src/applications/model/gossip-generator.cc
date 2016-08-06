@@ -46,6 +46,10 @@ GossipGenerator::GossipGenerator ()
   gossip_delta_t = Seconds(0.001);
   solicit_delta_t = Seconds(5);
   x = CreateObject<UniformRandomVariable> ();
+  
+  y = CreateObject<UniformRandomVariable> ();
+//  y->SetAttribute("Min", DoubleValue(0.0));
+//  y->SetAttribute("Max", DoubleValue((double)neighbours[1].size()));
   // source = src;
 }
 
@@ -193,9 +197,7 @@ GossipGenerator::ChooseNeighbors () {
   
   im = 0;
   std::vector<int> vec;
-  
-  
-  
+ 
   for (in = 0; in < neighborSize && im < fanout; ++in) {
     int rn = neighborSize - in;
     int rm = fanout - im;
@@ -205,7 +207,6 @@ GossipGenerator::ChooseNeighbors () {
       im++;
     }
   }
-  
   
   std::cout << "CHOOSE NEIGHBORS: the random index vector is " << std::endl;
   for (unsigned int i = 0; i < vec.size(); i++) {
@@ -220,8 +221,12 @@ GossipGenerator::ChooseNeighbors () {
 void
 GossipGenerator::ChooseRandomNeighbor(Ipv4Address ipv4array[2]){
   NS_LOG_INFO("ChooseRandomNeighbor from " << neighbours[0].size());
-  int temp_rnd = rand() % neighbours[0].size(); // Note: Seed, if desired! // TODO may not be random enough.
-  ipv4array[0] = neighbours[0].at(temp_rnd);
+//  if ((unsigned int)(x->GetValue(0.0, (double)rn-1)) < (unsigned int)rm){
+  //double temp = x->GetValue(0.0, (double)neighbours[1].size());
+  uint32_t temp_rnd = y->GetInteger(0, neighbours[1].size()-1);
+  std::cout << "From Node " << this->GetNode()->GetId() << " CHOOSE_RANDOM_NEIGHBOR index " << temp_rnd << std::endl;
+  //int temp_rnd = rand() % neighbours[0].size(); // Note: Seed, if desired! // TODO may not be random enough.
+  ipv4array[0] = neighbours[0].at(0);
   ipv4array[1] = neighbours[1].at(temp_rnd);
 }
 
