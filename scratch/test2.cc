@@ -89,12 +89,43 @@
 #include <list>
 
 using namespace ns3;
+using namespace std;
 
 struct neighbors {
   uint32_t sourceNode;
   std::vector<uint32_t> neighborNodes; 
 };
- 
+
+class simstats {
+    double time;
+    int hops;
+    double avgMsg;
+  public:
+    simstats(double, int, double);
+    int getHops(void);
+    double getTime(void);
+    double getAvgMsgs(void);
+}; 
+
+simstats::simstats (double t, int h, double a) {
+  time = t;
+  hops = h;
+  avgMsg = a;
+}
+
+int simstats::getHops(void){
+  return hops;
+}
+
+double simstats::getTime(void){
+  return time;
+}
+
+double simstats::getAvgMsgs(void){
+  return avgMsg;
+}
+
+
 // Graph class represents a directed graph using adjacency list representation
 class Graph
 {
@@ -424,25 +455,6 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
   mobility.Install (c);
 
 
-
-  // Enable OLSR
-/*
-  OlsrHelper olsr;
-  Ipv4StaticRoutingHelper staticRouting;
-
-  Ipv4ListRoutingHelper list;
-  list.Add (staticRouting, 0);
-  list.Add (olsr, 10);
-*/
-  
-/*
-  AodvHelper aodv;
-  Ipv4ListRoutingHelper list;
-  list.Add (aodv, 0);
-*/
-  //list.Set ("EnableBroadcast", BooleanValue(false));
-
-
   BasicEnergySourceHelper basicSourceHelper;
   basicSourceHelper.Set ("BasicEnergySourceInitialEnergyJ", DoubleValue (1080.0));   // 500mAh = 5400J  100mAh = 1080J
   EnergySourceContainer sources = basicSourceHelper.Install (c);
@@ -454,12 +466,8 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
   //std::cout << "energy fraction is " << energySource->GetEnergyFraction() << std::endl;
   
   InternetStackHelper internet;
-  //internet.SetRoutingHelper (list); // has effect on the next Install ()
   internet.Install (c);
 
- 
-  
-  
   Ipv4AddressHelper ipv4;
   NS_LOG_INFO ("Assign IP Addresses.");
   ipv4.SetBase ("10.1.1.0", "255.255.255.0");
@@ -495,7 +503,6 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
       if (! mob) continue; // Strange -- node has no mobility model installed. Skip. 
       Vector pos = mob->GetPosition (); 
       
-      
       Ptr<Ipv4> ipv4 = node->GetObject<Ipv4>();
       Ipv4InterfaceAddress iaddr = ipv4->GetAddress(1,0);
       Ipv4Address addri = iaddr.GetLocal();
@@ -514,14 +521,7 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
     for (unsigned int j = 0; j < neighborList[i].neighborNodes.size(); j++){
       g.addEdge(i, neighborList[i].neighborNodes[j]);
     }
-    
   }
-//    g.addEdge(0, 1);
-//    g.addEdge(0, 2);
-//    g.addEdge(1, 2);
-//    g.addEdge(2, 0);
-//    g.addEdge(2, 3);
-//    g.addEdge(3, 3);
  
     std::cout << "Following is Depth First Traversal (starting from vertex(node) 0) \n";
     g.DFS(0);
@@ -532,11 +532,10 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
       std::cout << "NOT Connected" << std::endl;
       return 0;
     }
-//    return 0;
+
     
     
   // for each node, add their neighbors
-
   for (unsigned int j = 0; j < neighborList.size(); j++){
 //    std::cout << "Working on node " << neighborList[j].sourceNode << std::endl;
     for (unsigned int i = 0; i < neighborList[j].neighborNodes.size(); i++) {
@@ -647,6 +646,36 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
   Simulator::Stop (Seconds (30.0));
   
   Simulator::Run ();
+  
+  NS_LOG_INFO(endl << " ---- Print results ---" << endl);
+  int MaxHops = 0;
+  Time MaxTime = Seconds(0);
+  double AvgMessagesPerNode = 0;
+  for ( int i=0; i< (int)numNodes;++i)
+  {
+    Ptr<GossipGenerator> ii = GetGossipApp(c.Get(i));
+    if (MaxHops < ii->GetPacketHops()){
+      MaxHops = ii->GetPacketHops();
+    }
+    if (MaxTime.Compare(ii->GetReceivedDataTime()) == -1){
+      MaxTime = ii->GetReceivedDataTime();
+    }
+    AvgMessagesPerNode += ii->GetSentMessages();
+    NS_LOG_INFO("Node " << i << ": ");
+    NS_LOG_INFO(" * Sent icmp messages   : " << ii->GetSentMessages());
+    NS_LOG_INFO(" * Hops of data message : " << ii->GetPacketHops());
+    NS_LOG_INFO(" * Time of data received: " << ii->GetReceivedDataTime().GetSeconds() << "s");
+  }
+  AvgMessagesPerNode /= numNodes;
+  NS_LOG_INFO(endl << "Simulation terminated after " << Simulator::Now().GetSeconds() << "s");
+  NS_LOG_INFO("Max hops: " << MaxHops);
+  NS_LOG_INFO("Average amount of sent messages per node: " << AvgMessagesPerNode);
+  NS_LOG_INFO("Time until information was spread: " << MaxTime.GetSeconds() << "s" << endl);
+  simstats ret(MaxTime.GetSeconds(),MaxHops,AvgMessagesPerNode);
+//  Simulator::Destroy ();
+//  return ret;
+  
+  
   Simulator::Destroy ();
 
   return 0;
