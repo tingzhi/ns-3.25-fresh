@@ -411,11 +411,15 @@ int main (int argc, char *argv[])
                                  "LayoutType", StringValue ("RowFirst"));
   
 */
-
+uint32_t max = (uint32_t)sqrt(1000*numNodes);
+std::stringstream ss;
+ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
+  
   mobility.SetPositionAllocator ("ns3::RandomRectanglePositionAllocator",
-                                 "X", StringValue ("ns3::UniformRandomVariable[Min=0|Max=100]"),
-                                 "Y", StringValue ("ns3::UniformRandomVariable[Min=0|Max=100]"));
+                                 "X", StringValue (ss.str()),
+                                 "Y", StringValue (ss.str())); 
 
+  
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (c);
 
