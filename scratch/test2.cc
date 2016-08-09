@@ -64,34 +64,39 @@
 #include "ns3/config-store-module.h"
 #include "ns3/wifi-module.h"
 #include "ns3/internet-module.h"
-#include "ns3/olsr-helper.h"
-#include "ns3/ipv4-static-routing-helper.h"
-#include "ns3/ipv4-list-routing-helper.h"
+#include "ns3/energy-module.h"
 
-#include "ns3/aodv-module.h"
-#include "ns3/aodv-helper.h"
-#include "ns3/aodv-neighbor.h"
+//#include "ns3/olsr-helper.h"
+//#include "ns3/ipv4-static-routing-helper.h"
+//#include "ns3/ipv4-list-routing-helper.h"
+//#include "ns3/aodv-module.h"
+//#include "ns3/aodv-helper.h"
+//#include "ns3/aodv-neighbor.h"
 //#include "ns3/energy-source.h"
 //#include "ns3/li-ion-energy-source-helper.h"
-#include "ns3/energy-module.h"
 
 #include "ns3/gossip-generator.h"
 #include "ns3/gossip-generator-helper.h"
 #include "src/network/model/node.h"
 
-#include "ns3/log.h"
+#include "ns3/point-to-point-module.h"
+#include "ns3/applications-module.h"
+#include "ns3/traffic-control-module.h"
+#include "ns3/ipv4-global-routing-helper.h"
 
+#include "ns3/log.h"
 
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
-
 // C++ program to print DFS traversal from a given vertex in a  given graph
 #include <list>
 
 using namespace ns3;
 using namespace std;
+
+NS_LOG_COMPONENT_DEFINE ("GossipProtocolTest");
 
 struct neighbors {
   uint32_t sourceNode;
@@ -131,40 +136,40 @@ double simstats::getAvgMsgs(void){
 // Graph class represents a directed graph using adjacency list representation
 class Graph
 {
-    int V;    // No. of vertices
-    std::list<int> *adj;    // Pointer to an array containing adjacency lists
-    std::vector<int> visitedList;
-    void DFSUtil(int v, bool visited[]);  // A function used by DFS
+  int V;    // No. of vertices
+  std::list<int> *adj;    // Pointer to an array containing adjacency lists
+  std::vector<int> visitedList;
+  void DFSUtil(int v, bool visited[]);  // A function used by DFS
 public:
-    Graph(int V);   // Constructor
-    void addEdge(int v, int w);   // function to add an edge to graph
-    void DFS(int v);    // DFS traversal of the vertices reachable from v
-    int IsConnected();
+  Graph(int V);   // Constructor
+  void addEdge(int v, int w);   // function to add an edge to graph
+  void DFS(int v);    // DFS traversal of the vertices reachable from v
+  int IsConnected();
 };
  
 Graph::Graph(int V)
 {
-    this->V = V;
-    adj = new std::list<int>[V];
+  this->V = V;
+  adj = new std::list<int>[V];
 }
  
 void Graph::addEdge(int v, int w)
 {
-    adj[v].push_back(w); // Add w to v’s list.
+  adj[v].push_back(w); // Add w to v’s list.
 }
  
 void Graph::DFSUtil(int v, bool visited[])
 {
-    // Mark the current node as visited and print it
-    visited[v] = true;
-    std::cout << v << " ";
-    visitedList.push_back(v);
- 
-    // Recur for all the vertices adjacent to this vertex
-    std::list<int>::iterator i;
-    for (i = adj[v].begin(); i != adj[v].end(); ++i)
-        if (!visited[*i])
-            DFSUtil(*i, visited);
+  // Mark the current node as visited and print it
+  visited[v] = true;
+  std::cout << v << " ";
+  visitedList.push_back(v);
+
+  // Recur for all the vertices adjacent to this vertex
+  std::list<int>::iterator i;
+  for (i = adj[v].begin(); i != adj[v].end(); ++i)
+      if (!visited[*i])
+          DFSUtil(*i, visited);
 }
 
 int Graph::IsConnected () {
@@ -181,22 +186,14 @@ int Graph::IsConnected () {
 // DFS traversal of the vertices reachable from v. It uses recursive DFSUtil()
 void Graph::DFS(int v)
 {
-    // Mark all the vertices as not visited
-    bool *visited = new bool[V];
-    for (int i = 0; i < V; i++)
-        visited[i] = false;
- 
-    // Call the recursive helper function to print DFS traversal
-    DFSUtil(v, visited);
+  // Mark all the vertices as not visited
+  bool *visited = new bool[V];
+  for (int i = 0; i < V; i++)
+      visited[i] = false;
+
+  // Call the recursive helper function to print DFS traversal
+  DFSUtil(v, visited);
 }
- 
-
-
-//neighbors makeNeighbors (Ptr<Node>, std::vector<int>);
-//void printNeighborList (std::vector<neighbors>);
-
-
-NS_LOG_COMPONENT_DEFINE ("GossipProtocolTest");
 
 void ReceivePacket (Ptr<Socket> socket)
 {
@@ -220,7 +217,6 @@ static void GenerateTraffic (Ptr<Socket> socket, uint32_t pktSize,
       socket->Close ();
     }
 }
-
 
 /// Trace function for remaining energy at node.
 void
@@ -290,7 +286,8 @@ getNeighbors (NodeContainer c, double maxRange) {
   return neighborList; 
 }
 
-void printNeighborList (std::vector<neighbors> neighborList) {
+void 
+printNeighborList (std::vector<neighbors> neighborList) {
   for (std::vector<neighbors>::iterator nb = neighborList.begin(); nb != neighborList.end(); ++nb) {
     std::cout << "Node " << nb->sourceNode << " 's neighbors are ";
     
@@ -310,8 +307,8 @@ void printNeighborList (std::vector<neighbors> neighborList) {
 // check how much energy remaining in the energy source after broadcast one packet.
 // check how many packets being sent for broadcasting one packet.
 
-
-int calFanout (double remainingEnergyPercentage, std::vector<neighbors> neighborList, int nodeIndex) {
+int 
+calFanout (double remainingEnergyPercentage, std::vector<neighbors> neighborList, int nodeIndex) {
   int fanout = 0;
 
   if (remainingEnergyPercentage >= 0.8)
@@ -327,10 +324,7 @@ int calFanout (double remainingEnergyPercentage, std::vector<neighbors> neighbor
 
   std::cout << "Here!!!!" << std::endl;
   std::cout << "Initial fanout was " << fanout << std::endl;
-  //std::vector<neighbors>::iterator nb = neighborList.begin();
   std::cout << "node " << nodeIndex << "'s neighborNode size is " << neighborList.at(nodeIndex).neighborNodes.size() << std::endl;
-
-//  std::cout << "neighborlist size is " << nb->neighborNodes.size() << std::endl;
   std::cout << "fanout is " << std::min(fanout, (int)neighborList.at(nodeIndex).neighborNodes.size()) << std::endl;
   return std::min(fanout, (int)neighborList.at(nodeIndex).neighborNodes.size());
 }
@@ -345,8 +339,6 @@ updateFanout (EnergySourceContainer sources, std::vector<neighbors> neighborList
   return ret;
 }
 
-//TODO: using energy to control fanout of gossip
-
 void
 updateEnergyFraction (EnergySourceContainer sources) {
   Simulator::Schedule (Seconds(2), &updateEnergyFraction, sources);
@@ -354,28 +346,35 @@ updateEnergyFraction (EnergySourceContainer sources) {
 
 }
 
-Ptr<GossipGenerator> GetGossipApp(Ptr <Node> node)
+Ptr<GossipGenerator> 
+GetGossipApp(Ptr <Node> node)
 {
   Ptr< Application > gossipApp = node->GetApplication (0) ;
   return DynamicCast<GossipGenerator>(gossipApp);
 }
 
-int main (int argc, char *argv[])
+int 
+main (int argc, char *argv[])
 {
 //  NS_LOG_FUNCTION(this);
   std::string phyMode ("DsssRate1Mbps");
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 1;
   uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
-//  uint32_t sinkNode = 0;
-//  uint32_t sourceNode = 9;
+  uint32_t sinkNode = 0;
+  uint32_t sourceNode = 2;
   double interval = 1.0; // seconds
   bool verbose = false;
   bool tracing = false;
   double maxRange = 50;
+  
+  double simulationTime = 100.0; // seconds
+  std::string transportProt = "Tcp";
+  std::string socketType = "ns3::TcpSocketFactory";
 
   CommandLine cmd;
-
+  
+  cmd.AddValue("transportProt", "Transport protocol to use:Tcp, Udp", transportProt);
   cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
   cmd.AddValue ("maxRange", "Maximum Wifi Range", maxRange);
   cmd.AddValue ("packetSize", "size of application packet sent", packetSize);
@@ -388,6 +387,13 @@ int main (int argc, char *argv[])
   //cmd.AddValue ("sourceNode", "Sender node number", sourceNode);
 
   cmd.Parse (argc, argv);
+  
+//  if (transportProt.compare("Tcp") == 0) {
+//    socketType = "ns3::TcpSocketFactory";
+//  }
+//  else {
+//    socketType = "ns3::UdpSocketFactory";
+//  }
   // Convert to time object
   Time interPacketInterval = Seconds (interval);
 
@@ -399,11 +405,20 @@ int main (int argc, char *argv[])
   Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode", 
                       StringValue (phyMode));
 
-  
-  
-  NodeContainer c;
+  NodeContainer c;  // wifi nodes
   c.Create (numNodes);
-
+  
+//  NodeContainer p2pNodes;
+//  p2pNodes.Create(1);
+//  p2pNodes.Add(c.Get(0));
+//  
+//  PointToPointHelper pointToPoint;
+//  pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("10Mbps"));
+//  pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
+//  
+//  NetDeviceContainer p2pDevices;
+//  p2pDevices = pointToPoint.Install(p2pNodes);
+  
   // The below set of helpers will help us to put together the wifi NICs we want
   WifiHelper wifi;
   if (verbose)
@@ -445,19 +460,19 @@ int main (int argc, char *argv[])
                                  "LayoutType", StringValue ("RowFirst"));
   
 */
-uint32_t max = (uint32_t)sqrt(1000*numNodes);
-std::stringstream ss;
-ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
+
+// calculate the rectangle x and y maximum range
+  uint32_t max = (uint32_t)sqrt(1000*numNodes);
+  std::stringstream ss;
+  ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
   
   mobility.SetPositionAllocator ("ns3::RandomRectanglePositionAllocator",
                                  "X", StringValue (ss.str()),
                                  "Y", StringValue (ss.str())); 
-
-  
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (c);
 
-
+  // install energy source and energy model on all wifi nodes
   BasicEnergySourceHelper basicSourceHelper;
   basicSourceHelper.Set ("BasicEnergySourceInitialEnergyJ", DoubleValue (1080.0));   // 500mAh = 5400J  100mAh = 1080J
   EnergySourceContainer sources = basicSourceHelper.Install (c);
@@ -468,56 +483,79 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
   //Ptr<BasicEnergySource> energySource = DynamicCast<BasicEnergySource> (sources.Get(0));
   //std::cout << "energy fraction is " << energySource->GetEnergyFraction() << std::endl;
   
+  // install internetstack on every node
   InternetStackHelper internet;
   internet.Install (c);
+//  internet.Install(p2pNodes.Get(0));
 
   Ipv4AddressHelper ipv4;
   NS_LOG_INFO ("Assign IP Addresses.");
   ipv4.SetBase ("10.1.1.0", "255.255.255.0");
   Ipv4InterfaceContainer ipv4Inter = ipv4.Assign (devices);
-
   
- 
-//   for (unsigned int i = 0; i < numNodes; i++) {
-//     
+//  ipv4.SetBase("10.1.2.0", "255.255.255.0");
+//  Ipv4InterfaceContainer p2pInterfaces;
+//  p2pInterfaces = ipv4.Assign(p2pDevices);
+  
+  // Flow
+//  uint16_t port = 7;
+//  Address localAddress (InetSocketAddress (Ipv4Address::GetAny (), port));
+//  PacketSinkHelper packetSinkHelper (socketType, localAddress);
+//  ApplicationContainer sinkApp = packetSinkHelper.Install (c.Get (4));
+//
+//  sinkApp.Start (Seconds (2.0));
+//  sinkApp.Stop (Seconds (simulationTime + 0.1));
+//
+//  uint32_t payloadSize = 1448;
+//  Config::SetDefault ("ns3::TcpSocket::SegmentSize", UintegerValue (payloadSize));
+//
+//  OnOffHelper onoff (socketType, Ipv4Address::GetAny ());
+//  onoff.SetAttribute ("OnTime",  StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
+//  onoff.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
+//  onoff.SetAttribute ("PacketSize", UintegerValue (payloadSize));
+//  onoff.SetAttribute ("DataRate", StringValue ("10Mbps")); //bit/s
+//  ApplicationContainer apps;
+//
+//  AddressValue remoteAddress (InetSocketAddress (p2pInterfaces.GetAddress (0), port));
+//  onoff.SetAttribute ("Remote", remoteAddress);
+//  apps.Add (onoff.Install (p2pNodes.Get (1)));
+//  apps.Start (Seconds (1.0));
+//  apps.Stop (Seconds (simulationTime + 0.1));
+
+  Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
+//   for (unsigned int i = 0; i < numNodes; i++) {  
 //    std::cout << sources.Get(i)->GetNode()->GetId() << " && " << sources.Get(i)->GetNode()->GetObject<Ipv4>()->GetAddress(1,0).GetLocal() << std::endl;
 //  }
-  
   
   GossipGeneratorHelper ggh ;
   Time GossipInterval = Seconds(0.5); // Must be larger than the round-trip-time! (c.f. LinkDelay)
   Time SolicitInterval = Seconds(1.0); //not planning on using this attribute
-  ApplicationContainer nodeApps; 
   
-//  nodeApps = ggh.Install(c, sources); // install gossip generator on all nodes
+  ApplicationContainer nodeApps;   
   nodeApps = ggh.Install(c);
   //GetGossipApp(c.Get(0))->AddNeighbor(i.GetAddress(0), i.GetAddress(1));
 //  GetGossipApp(nodes2.Get(Edge1))->AddNeighbor(InterfaceCont.GetAddress(0),InterfaceCont.GetAddress(1));
 
-
 // print out every nodes' position
-//NodeContainer const & n = NodeContainer::GetGlobal (); 
-//  int ctr = 0;
   for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i) 
   { 
-      Ptr<Node> node = *i; 
-      std::string name = Names::FindName (node); // Assume that nodes are named, remove this line otherwise 
-      Ptr<MobilityModel> mob = node->GetObject<MobilityModel> (); 
-      if (! mob) continue; // Strange -- node has no mobility model installed. Skip. 
-      Vector pos = mob->GetPosition (); 
-      
-      Ptr<Ipv4> ipv4 = node->GetObject<Ipv4>();
-      Ipv4InterfaceAddress iaddr = ipv4->GetAddress(1,0);
-      Ipv4Address addri = iaddr.GetLocal();
-      
-      std::cout << "Node " << node->GetId() << " is at (" << pos.x << ", " << pos.y << ", " << pos.z << ")\n"; 
-      std::cout << "Node " << node->GetId() << "'s IP address is " << addri << "\n";
+    Ptr<Node> node = *i; 
+//      std::string name = Names::FindName (node); // Assume that nodes are named, remove this line otherwise 
+    Ptr<MobilityModel> mob = node->GetObject<MobilityModel> (); 
+    if (! mob) continue; // Strange -- node has no mobility model installed. Skip. 
+    Vector pos = mob->GetPosition (); 
+
+    Ptr<Ipv4> ipv4 = node->GetObject<Ipv4>();
+    Ipv4InterfaceAddress iaddr = ipv4->GetAddress(1,0);
+    Ipv4Address addri = iaddr.GetLocal();
+
+    std::cout << "Node " << node->GetId() << " is at (" << pos.x << ", " << pos.y << ", " << pos.z << ")\n"; 
+    std::cout << "Node " << node->GetId() << "'s IP address is " << addri << "\n";
   } 
 
   std::vector<neighbors> neighborList;
   neighborList = getNeighbors (c, maxRange);
   printNeighborList (neighborList);
-  
   
   Graph g(numNodes);
   for (int i = 0; i < (int)numNodes; i++) {
@@ -526,17 +564,15 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
     }
   }
  
-    std::cout << "Following is Depth First Traversal (starting from vertex(node) 0) \n";
-    g.DFS(0);
-    int isConnected = g.IsConnected();
-    if (isConnected == 1)
-      std::cout << "Connected" << std::endl;
-    else {
-      std::cout << "NOT Connected" << std::endl;
-      return 0;
-    }
-
-    
+  std::cout << "Following is Depth First Traversal (starting from vertex(node) 0) \n";
+  g.DFS(0);
+  int isConnected = g.IsConnected();
+  if (isConnected == 1)
+    std::cout << "Connected" << std::endl;
+  else {
+    std::cout << "NOT Connected" << std::endl;
+    return 0;
+  }
     
   // for each node, add their neighbors
   for (unsigned int j = 0; j < neighborList.size(); j++){
@@ -552,8 +588,6 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
 //    std::cout << GetGossipApp(c.Get(0))->GetNeighbours()[i] << std::endl; 
 //  }
   
-  
-  //GetGossipApp(c.Get(1))->GetEnergySourceContainer(sources);
   for (unsigned int i = 0; i < numNodes; i++) {
     GetGossipApp(c.Get(i))->GetEnergySource(sources.Get(i));
   }
@@ -563,7 +597,7 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
 //    GetGossipApp(c.Get(1))->ChooseNeighbors();
 //  }
   
-  for ( uint32_t i=0; i<numNodes;++i)
+  for ( uint32_t i = 0; i < numNodes; ++i)
   { //TODO use attributes
     Ptr<GossipGenerator> ii = GetGossipApp(c.Get(i));
     ii->SetGossipInterval(GossipInterval);
@@ -572,12 +606,7 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
 
   Ptr<GossipGenerator> a = GetGossipApp(c.Get(0));
   a->SetCurrentValue( 2 );
-  
-  
-  
-/*
-  calFanout (0.8, neighborList, 2);
-  updateFanout (sources, neighborList, 2);
+   
 
   TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
   Ptr<Socket> recvSink = Socket::CreateSocket (c.Get (sinkNode), tid);  
@@ -589,7 +618,7 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
   InetSocketAddress remote = InetSocketAddress (ipv4Inter.GetAddress (sinkNode, 0), 80);
  // source->SetAllowBroadcast (true);
   source->Connect (remote);
-*/
+
 
 /** connect trace sources **/
   /***************************************************************************/
@@ -630,7 +659,7 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
   // Give OLSR time to converge-- 30 seconds perhaps
 
   //Time update_delta_t = Seconds(0.5);
-  //Simulator::Schedule (Seconds (1.0), &GenerateTraffic, source, packetSize, numPackets, interPacketInterval);
+  Simulator::Schedule (Seconds (30.0), &GenerateTraffic, source, packetSize, numPackets, interPacketInterval);
   //Simulator::Schedule (Seconds(5.0), &updateFanout, sources, neighborList, 1);
   //Simulator::Schedule (update_delta_t, &calFanout, 0.7, neighborList, 1);
   //Simulator::Schedule (Seconds (10.0), &printNeighbors, neighbor);
@@ -646,8 +675,8 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
   // Output what we are doing
   //NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with RandomRectanglePositionAllocator 100 by 100");
 
-  Simulator::Stop (Seconds (30.0));
-  //Simulator::Stop();
+  //Simulator::Stop (Seconds (30.0));
+  Simulator::Stop(Seconds (simulationTime + 0.1));
   Simulator::Run ();
   
   NS_LOG_INFO(endl << " ---- Print results ---" << endl);
@@ -676,10 +705,7 @@ ss << "ns3::UniformRandomVariable[Min=0|Max=" << max << "]";
   NS_LOG_INFO("Time until information was spread: " << MaxTime.GetSeconds() << "s" << endl);
   simstats ret(MaxTime.GetSeconds(),MaxHops,AvgMessagesPerNode);
 
-  
-  
   Simulator::Destroy ();
-
   return 0;
 }
 
