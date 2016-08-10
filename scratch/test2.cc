@@ -85,6 +85,7 @@
 #include "ns3/ipv4-global-routing-helper.h"
 
 #include "ns3/log.h"
+#include "src/applications/model/gossip-generator.h"
 
 #include <iostream>
 #include <fstream>
@@ -216,6 +217,16 @@ static void GenerateTraffic (Ptr<Socket> socket, uint32_t pktSize,
     {
       socket->Close ();
     }
+}
+
+void
+GeneratePackets (Ptr<GossipGenerator> gossipGenerator, uint32_t pktNum) 
+{ 
+  gossipGenerator->SetCurrentValue( 2 );
+  gossipGenerator->SetSequenceNumber(pktNum);
+  cout << "GeneratePackets Function! pktNum " <<  pktNum << endl;
+  
+  Simulator::Schedule (Seconds(30.0), &GeneratePackets, gossipGenerator, pktNum+1);
 }
 
 /// Trace function for remaining energy at node.
@@ -359,11 +370,11 @@ main (int argc, char *argv[])
 //  NS_LOG_FUNCTION(this);
   std::string phyMode ("DsssRate1Mbps");
   uint32_t packetSize = 1000; // bytes
-  uint32_t numPackets = 1;
+  uint32_t numPackets = 5;
   uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
   uint32_t sinkNode = 0;
   uint32_t sourceNode = 2;
-  double interval = 1.0; // seconds
+  double interval = 30.0; // seconds
   bool verbose = false;
   bool tracing = false;
   double maxRange = 50;
@@ -605,9 +616,11 @@ main (int argc, char *argv[])
   }
 
   Ptr<GossipGenerator> a = GetGossipApp(c.Get(0));
-  a->SetCurrentValue( 2 );
-   
-
+  GeneratePackets(a, 1);
+  
+//  a->SetCurrentValue( 2 );
+//  a->SetSequenceNumber(1);
+  
   TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
   Ptr<Socket> recvSink = Socket::CreateSocket (c.Get (sinkNode), tid);  
   InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), 80);
@@ -659,7 +672,7 @@ main (int argc, char *argv[])
   // Give OLSR time to converge-- 30 seconds perhaps
 
   //Time update_delta_t = Seconds(0.5);
-  Simulator::Schedule (Seconds (30.0), &GenerateTraffic, source, packetSize, numPackets, interPacketInterval);
+  Simulator::Schedule (Seconds (1.0), &GenerateTraffic, source, packetSize, numPackets, interPacketInterval);
   //Simulator::Schedule (Seconds(5.0), &updateFanout, sources, neighborList, 1);
   //Simulator::Schedule (update_delta_t, &calFanout, 0.7, neighborList, 1);
   //Simulator::Schedule (Seconds (10.0), &printNeighbors, neighbor);
@@ -676,6 +689,8 @@ main (int argc, char *argv[])
   //NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with RandomRectanglePositionAllocator 100 by 100");
 
   //Simulator::Stop (Seconds (30.0));
+//  Simulator::Schedule (Seconds(1.0), &GeneratePackets, a, 1);  
+
   Simulator::Stop(Seconds (simulationTime + 0.1));
   Simulator::Run ();
   

@@ -82,6 +82,9 @@ public:
    * \brief Seed the internal value of a node to initiate the gossip.
    * \param The internal value.
    */
+  
+  void SetSequenceNumber (int seq);
+  
   void SetCurrentValue (int val);
 
   /**
@@ -191,6 +194,8 @@ protected:
   int PacketHops; //!< How many hops the data packet experienced
   std::vector<Ipv4Address> neighbours[2]; //!< The own addresses and corresponding neighbors of this node
   //Ptr<EnergySource> source;
+  int seqNum;
+  
   
   
   

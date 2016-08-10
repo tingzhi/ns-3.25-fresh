@@ -277,6 +277,7 @@ GossipGenerator::SendPayload(Ipv4Address src, Ipv4Address dest)
   }
   data[0] = (uint8_t) CurrentValue; // ONLY use first 8 bits to store data. // TODO May be extended...  
   data[1] = NewPacketHops;
+  data[2] = seqNum;
 
   Ptr<Icmpv4L4Protocol> icmp = this->GetNode()->GetObject<Icmpv4L4Protocol>(); 
   icmp->SendData(header, data);
@@ -289,6 +290,13 @@ GossipGenerator::SetCurrentValue ( int val )
   CurrentValue = val;
   PacketHops = 0; // Fresh data -> no hops
   NS_LOG_INFO ("Value of node set to " << CurrentValue);
+}
+
+void
+GossipGenerator::SetSequenceNumber (int seq)
+{
+  NS_LOG_FUNCTION (this << seq);
+  seqNum = seq;
 }
 
 /*
