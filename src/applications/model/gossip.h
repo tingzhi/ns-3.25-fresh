@@ -167,11 +167,13 @@ public:
 //  Ptr<UniformRandomVariable> x;
 //  Ptr<UniformRandomVariable> y; // used for ChooseRandomNeighbor function
   
+  
 /************************************************************************/
 
 protected:
     
   int CurrentValue; //!< The current Value
+
 //  bool halt; //!< If the gossip is paused
 //  Time gossip_delta_t; //!< Time between sending data to the other nodes
 //  Time solicit_delta_t; //!< Time between requests of data from the other nodes

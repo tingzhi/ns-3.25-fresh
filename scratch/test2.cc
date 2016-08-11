@@ -222,9 +222,9 @@ static void GenerateTraffic (Ptr<Socket> socket, uint32_t pktSize,
 }
 
 Ipv4Address
-GetIpv4 (Ptr<Node> node) {
+GetIpv4 (Ptr<Node> node, uint32_t index) {
   Ptr<Ipv4> ipv4 = node->GetObject<Ipv4> (); // Get Ipv4 instance of the node
-  Ipv4Address addr = ipv4->GetAddress (1, 0).GetLocal (); // Get Ipv4InterfaceAddress of xth interface.
+  Ipv4Address addr = ipv4->GetAddress (index, 0).GetLocal (); // Get Ipv4InterfaceAddress of xth interface.
   
   return addr;
 }
@@ -236,8 +236,8 @@ GeneratePackets (Ptr<Gossip> gossip, uint32_t pktNum, NodeContainer wifiNodes, N
   gossip->SetSequenceNumber(pktNum);
   
   Ipv4Address srcAddr, destAddr;
-  srcAddr = GetIpv4(sourceNode.Get(0));
-  destAddr = GetIpv4(wifiNodes.Get(0));
+  srcAddr = GetIpv4(sourceNode.Get(1), 1);
+  destAddr = GetIpv4(wifiNodes.Get(0), 2);
   
   std::cout << "srcAddr " << srcAddr << std::endl;
   std::cout << "destAddr " << destAddr << std::endl;
@@ -422,10 +422,10 @@ main (int argc, char *argv[])
   double interval = 30.0; // seconds
   bool verbose = false;
   bool tracing = false;
-  double maxRange = 50;
+  double maxRange = 100;
   std::string transportProt = "Tcp";
   std::string socketType = "ns3::TcpSocketFactory";
-  double simulationTime = 10.0; // seconds
+  double simulationTime = 1000.0; // seconds
 
   CommandLine cmd;
   cmd.AddValue("transportProt", "Transport protocol to use:Tcp, Udp", transportProt);
@@ -540,6 +540,7 @@ main (int argc, char *argv[])
                                  "Y", StringValue (ss.str())); 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (wifiNodes);
+  mobility.Install (sourceNodes.Get(1));
   
 //  MobilityHelper sourceMobility;
 //  sourceMobility.SetPositionAllocator ("ns3::GridPositionAllocator",
@@ -695,7 +696,9 @@ main (int argc, char *argv[])
   }
 
 //  Ptr<GossipGenerator> a = GetGossipApp(wifiNodes.Get(0));
-  Ptr<Gossip> a = GetGossip(sourceNodes.Get(0));
+  Ptr<Gossip> a = GetGossip(sourceNodes.Get(1));
+//  a->SetCurrentValue( 2 );
+
 //  GeneratePackets(a, 1, wifiNodes, sourceNode);
   
 //  a->SetCurrentValue( 2 );
