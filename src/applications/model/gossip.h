@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef GOSSIP_GENERATOR_H
-#define GOSSIP_GENERATOR_H
+#ifndef GOSSIP_H
+#define GOSSIP_H
 
 #include <vector>
 
@@ -28,11 +28,11 @@
 #include "ns3/internet-module.h"
 #include "ns3/nstime.h"
 #include "ns3/simulator.h"
-#include "ns3/energy-module.h"
+//#include "ns3/energy-module.h"
 
 namespace ns3 {
-  const uint8_t TYPE_SOLICIT = 21; //!< constant used to indicate type of msg
-  const uint8_t TYPE_ACK     = 23; //!< constant used to indicate type of msg
+//  const uint8_t TYPE_SOLICIT = 21; //!< constant used to indicate type of msg
+//  const uint8_t TYPE_ACK     = 23; //!< constant used to indicate type of msg
 
 /**
  * \ingroup 
@@ -40,7 +40,7 @@ namespace ns3 {
  *
  * \brief An application implementing the gossip protocol to communicate
  */
-class GossipGenerator : public Application
+class Gossip : public Application
 {
 public:
   /**
@@ -52,24 +52,24 @@ public:
   /**
    * \brief Constructor.
    */
-  GossipGenerator ();
+  Gossip ();
 
   /**
    * \brief Constructor.
    */
-  virtual ~GossipGenerator ();
+  virtual ~Gossip ();
 
   /**
    * \brief add a neighbor
    * \param ip of the neighbor
    */
-  void AddNeighbor( Ipv4Address own,Ipv4Address neighbor );
+//  void AddNeighbor( Ipv4Address own,Ipv4Address neighbor );
 
   /**
    * \brief Find a random neigbor
    * \param Store a random source and neighbor address in this array
    */
-  void ChooseRandomNeighbor(Ipv4Address neighbor[2]);
+//  void ChooseRandomNeighbor(Ipv4Address neighbor[2]);
 
   /**
    * \brief Seed the internal value of a node to initiate the gossip.
@@ -81,19 +81,19 @@ public:
    * \brief Set the time between two sent messages.
    * \param The time.
    */
-  void SetGossipInterval ( Time val );
+//  void SetGossipInterval ( Time val );
 
   /**
    * \brief Set the time between two requests.
    * \param The time.
    */
-  void SetSolicitInterval ( Time val );
+//  void SetSolicitInterval ( Time val );
 
   /**
    * \brief Return the current internal value.
    * \return The value
    */ 
-  int GetCurrentValue ( void);
+//  int GetCurrentValue ( void);
 
   /**
    * \brief Return the amount of icmp Messages sent.
@@ -111,21 +111,21 @@ public:
    * \brief Return the time used until the data was received.
    * \return The value
    */
-  Time GetReceivedDataTime ( void);
+//  Time GetReceivedDataTime ( void);
 
   //void SendMessage_debug(Ipv4Address src, Ipv4Address dest, int type);
 
   /**
    * \brief Accept and process a received Ack.
    */
-  void HandleAck(void);
+//  void HandleAck(void);
 
   /**
    * \brief Accept and process a request message.
    * \param the source address
    * \param the destination address
    */
-  void HandleSolicit(Ipv4Address src,Ipv4Address dest);
+//  void HandleSolicit(Ipv4Address src,Ipv4Address dest);
 
   /**
    * \brief Handle payload
@@ -133,48 +133,58 @@ public:
    * \param the destination address
    * \param the payload
    */
-  void HandlePayload(Ipv4Address src,Ipv4Address dest,uint8_t payload[]);
+//  void HandlePayload(Ipv4Address src,Ipv4Address dest,uint8_t payload[]);
   
 /************************************************************************/
   
-  void GetEnergySource (Ptr<EnergySource> testSrc); 
-  unsigned int calFanout (); 
-  std::vector<int> ChooseNeighbors ();
+//  void GetEnergySource (Ptr<EnergySource> testSrc); 
+//  unsigned int calFanout (); 
+//  std::vector<int> ChooseNeighbors ();
   void PrintSentPkt ();
   // void printEnergyFraction (Ptr<EnergySource> source);
-  void GetEnergySourceContainer (EnergySourceContainer sources);
+//  void GetEnergySourceContainer (EnergySourceContainer sources);
   void SetSequenceNumber (int seq);
   //void SetEnergySource (Ptr<EnergySource> src);
-  std::vector<Ipv4Address> GetNeighbours (void);
-  void GossipProcess2(void);
-  void Solicit2(void);
-  void HandleAck2(void);
-  void HandleSolicit2(Ipv4Address src,Ipv4Address dest);
-  void HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload_in[]);
+//  std::vector<Ipv4Address> GetNeighbours (void);
+//  void GossipProcess2(void);
+//  void Solicit2(void);
+//  void HandleAck2(void);
+//  void HandleSolicit2(Ipv4Address src,Ipv4Address dest);
+//  void HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload_in[]);
+//  void SetPacketInterval (Time val);
   
-  EnergySourceContainer src;
-  Ptr<EnergySource> energySource;
-  Ptr<EnergySource> srcPtr;
-  Ptr<UniformRandomVariable> x;
-  Ptr<UniformRandomVariable> y; // used for ChooseRandomNeighbor function
+  /**
+   * \brief Send the current value to the given destination
+   * \param the source
+   * \param the destination
+   */
+  void SendPayload(Ipv4Address src, Ipv4Address dest);
+  
+  
+//  EnergySourceContainer src;
+//  Ptr<EnergySource> energySource;
+//  Ptr<EnergySource> srcPtr;
+//  Ptr<UniformRandomVariable> x;
+//  Ptr<UniformRandomVariable> y; // used for ChooseRandomNeighbor function
   
 /************************************************************************/
 
 protected:
     
   int CurrentValue; //!< The current Value
-  bool halt; //!< If the gossip is paused
-  Time gossip_delta_t; //!< Time between sending data to the other nodes
-  Time solicit_delta_t; //!< Time between requests of data from the other nodes
-  Time ReceivedData; //!< Time when data was first received
+//  bool halt; //!< If the gossip is paused
+//  Time gossip_delta_t; //!< Time between sending data to the other nodes
+//  Time solicit_delta_t; //!< Time between requests of data from the other nodes
+//  Time ReceivedData; //!< Time when data was first received
   int SentMessages; //!< Amount of messages sent out
   int PacketHops; //!< How many hops the data packet experienced
-  std::vector<Ipv4Address> neighbours[2]; //!< The own addresses and corresponding neighbors of this node
+//  std::vector<Ipv4Address> neighbours[2]; //!< The own addresses and corresponding neighbors of this node
   //Ptr<EnergySource> source;
   int seqNum;
   std::vector<int> sourceNodePktStore;
-  std::vector<int> rxPktStore;
-  bool isNew;
+//  std::vector<int> rxPktStore;
+  
+//  Time packetInterval;
   
   /**
    * \brief Dispose method.
@@ -187,25 +197,20 @@ protected:
    * \param the destination
    * \param the message type
    */
-  void SendMessage(Ipv4Address src, Ipv4Address dest, int type);
+//  void SendMessage(Ipv4Address src, Ipv4Address dest, int type);
 
-  /**
-   * \brief Send the current value to the given destination
-   * \param the source
-   * \param the destination
-   */
-  void SendPayload(Ipv4Address src, Ipv4Address dest);
+  
   
 private:
   /**
    * \brief Start the GossipProcess
    */
-  void GossipProcess();
+//  void GossipProcess();
 
   /**
    * \brief Start the SolicitProcess
    */
-  void Solicit(void);
+//  void Solicit(void);
 
   /**
    * \brief Start the application.
@@ -220,4 +225,4 @@ private:
 
 } // Namespace ns3
 
-#endif // GOSSIP_GENERATOR_H
+#endif // GOSSIP_H

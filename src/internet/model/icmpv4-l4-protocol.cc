@@ -283,7 +283,7 @@ Icmpv4L4Protocol::HandleAck (Ptr<Packet> p, Icmpv4Header icmp, Ipv4Address sourc
   NS_LOG_FUNCTION (this << p << icmp << source << destination);
   NS_LOG_INFO ("Icmpv4L4Protocol::HandleAck");
   Ptr<GossipGenerator> GossipApp = GetGossipApp(incomingInterface);
-  GossipApp->HandleAck();
+  GossipApp->HandleAck2();
 }
 //Modified from HandleTimeExceeded
 void
@@ -292,7 +292,7 @@ Icmpv4L4Protocol::HandleRequest (Ptr<Packet> p, Icmpv4Header icmp, Ipv4Address s
   NS_LOG_FUNCTION (this << p << icmp << source << destination);
   NS_LOG_INFO ("Icmpv4L4Protocol::HandleRequest");
   Ptr<GossipGenerator> GossipApp = GetGossipApp(incomingInterface);
-  GossipApp->HandleSolicit(source, destination);
+  GossipApp->HandleSolicit2(source, destination);
 }
 //Modified from HandleTimeExceeded
 void
@@ -306,7 +306,7 @@ Icmpv4L4Protocol::HandleData (Ptr<Packet> p, Icmpv4Header icmp, Ipv4Address sour
   p->PeekHeader (data);
   uint8_t payload[8];
   data.GetData (payload);
-  GossipApp->HandlePayload(source, destination,payload);  
+  GossipApp->HandlePayload2(source, destination,payload);  
 }
 /******************************************************************************************************/
 
