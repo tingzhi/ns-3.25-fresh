@@ -239,7 +239,10 @@ GeneratePackets (Ptr<Gossip> gossip, uint32_t pktNum, NodeContainer wifiNodes, N
   srcAddr = GetIpv4(sourceNode.Get(0));
   destAddr = GetIpv4(wifiNodes.Get(0));
   
-//  gossip->SendPayload(srcAddr, destAddr);
+  std::cout << "srcAddr " << srcAddr << std::endl;
+  std::cout << "destAddr " << destAddr << std::endl;
+  
+  gossip->SendPayload(srcAddr, destAddr);
   cout << "GeneratePackets Function! pktNum " <<  pktNum << endl;
   
   Simulator::Schedule (Seconds(30.0), &GeneratePackets, gossip, pktNum+1, wifiNodes, sourceNode);
@@ -488,6 +491,7 @@ main (int argc, char *argv[])
   // set it to zero; otherwise, gain will be added
   wifiPhy.Set ("RxGain", DoubleValue (-10) ); 
   sourceWifiPhy.Set("RxGain", DoubleValue (-10));
+  
   // ns-3 supports RadioTap and Prism tracing extensions for 802.11b
   wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO); 
   sourceWifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO); 
@@ -676,7 +680,7 @@ main (int argc, char *argv[])
 
 //  Ptr<GossipGenerator> a = GetGossipApp(wifiNodes.Get(0));
   Ptr<Gossip> a = GetGossip(sourceNode.Get(0));
-  GeneratePackets(a, 1, wifiNodes, sourceNode);
+//  GeneratePackets(a, 1, wifiNodes, sourceNode);
   
 //  a->SetCurrentValue( 2 );
 //  a->SetSequenceNumber(1);
@@ -748,7 +752,7 @@ main (int argc, char *argv[])
   //NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with RandomRectanglePositionAllocator 100 by 100");
 
   //Simulator::Stop (Seconds (30.0));
-//  Simulator::Schedule (Seconds(1.0), &GeneratePackets, a, 1);  
+  Simulator::Schedule (Seconds(1.0), &GeneratePackets, a, 1, wifiNodes, sourceNode);  
 
   Simulator::Stop(Seconds (simulationTime + 0.1));
   Simulator::Run ();
