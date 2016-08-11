@@ -330,7 +330,7 @@ GossipGenerator::SendPayload(Ipv4Address src, Ipv4Address dest)
   }
   data[0] = (uint8_t) CurrentValue; // ONLY use first 8 bits to store data. // TODO May be extended...  
   data[1] = NewPacketHops;
-  data[2] = seqNum;
+  data[2] = (uint8_t) seqNum;
 
   Ptr<Icmpv4L4Protocol> icmp = this->GetNode()->GetObject<Icmpv4L4Protocol>(); 
   icmp->SendData(header, data);

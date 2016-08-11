@@ -412,6 +412,7 @@ int
 main (int argc, char *argv[])
 {
 //  NS_LOG_FUNCTION(this);
+  std::string sourcePhyMode ("DsssRate11Mbps");
   std::string phyMode ("DsssRate1Mbps");
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 5;
@@ -424,7 +425,7 @@ main (int argc, char *argv[])
   double maxRange = 50;
   std::string transportProt = "Tcp";
   std::string socketType = "ns3::TcpSocketFactory";
-  double simulationTime = 100.0; // seconds
+  double simulationTime = 10.0; // seconds
 
   CommandLine cmd;
   cmd.AddValue("transportProt", "Transport protocol to use:Tcp, Udp", transportProt);
@@ -461,8 +462,9 @@ main (int argc, char *argv[])
   NodeContainer wifiNodes; 
   wifiNodes.Create (numNodes);
   
-  NodeContainer sourceNode;
-  sourceNode.Create(1);
+  NodeContainer sourceNodes;
+  sourceNodes.Add(wifiNodes.Get(0));
+  sourceNodes.Create(1);
   
 //  NodeContainer p2pNodes;
 //  p2pNodes.Create(1);
@@ -518,26 +520,16 @@ main (int argc, char *argv[])
                                 "DataMode",StringValue (phyMode),
                                 "ControlMode",StringValue (phyMode));
   sourceWifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
-                                      "DataMode",StringValue (phyMode),
-                                      "ControlMode",StringValue (phyMode));
+                                      "DataMode",StringValue (sourcePhyMode),
+                                      "ControlMode",StringValue (sourcePhyMode));
   // Set it to adhoc mode
   wifiMac.SetType ("ns3::AdhocWifiMac");
   sourceWifiMac.SetType ("ns3::AdhocWifiMac");
   NetDeviceContainer wifiDevices = wifi.Install (wifiPhy, wifiMac, wifiNodes);
-  NetDeviceContainer sourceWifiDevice = sourceWifi.Install (sourceWifiPhy, sourceWifiMac, sourceNode);
+  NetDeviceContainer sourceWifiDevice = sourceWifi.Install (sourceWifiPhy, sourceWifiMac, sourceNodes);
 
   MobilityHelper mobility;
-/*
-  mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (0.0),
-                                 "MinY", DoubleValue (0.0),
-                                 "DeltaX", DoubleValue (distance),
-                                 "DeltaY", DoubleValue (distance),
-                                 "GridWidth", UintegerValue (5),
-                                 "LayoutType", StringValue ("RowFirst"));
-  
-*/
-
+ 
 // calculate the rectangle x and y maximum range
   uint32_t max = (uint32_t)sqrt(1000*numNodes);
   std::stringstream ss;
@@ -548,7 +540,17 @@ main (int argc, char *argv[])
                                  "Y", StringValue (ss.str())); 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (wifiNodes);
-  mobility.Install (sourceNode);
+  
+//  MobilityHelper sourceMobility;
+//  sourceMobility.SetPositionAllocator ("ns3::GridPositionAllocator",
+//                                       "MinX", DoubleValue (0.0),
+//                                       "MinY", DoubleValue (0.0),
+//                                       "DeltaX", DoubleValue (5.0),
+//                                       "DeltaY", DoubleValue (5.0),
+//                                       "GridWidth", UintegerValue (5),
+//                                       "LayoutType", StringValue ("RowFirst"));
+//  sourceMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+//  sourceMobility.Install (sourceNodes.Get(1));
 
   // install energy source and energy model on all wifi nodes
   BasicEnergySourceHelper basicSourceHelper;
@@ -564,14 +566,19 @@ main (int argc, char *argv[])
   // Install Internet stack on every node
   InternetStackHelper stack;
   stack.Install (wifiNodes);
-  stack.Install(sourceNode);
+  stack.Install(sourceNodes.Get(1));
 //  internet.Install(p2pNodes.Get(0));
 
-  Ipv4AddressHelper ipv4;
+  Ipv4AddressHelper address;
   NS_LOG_INFO ("Assign IP Addresses.");
-  ipv4.SetBase ("10.1.1.0", "255.255.255.0");
-  Ipv4InterfaceContainer ipv4Inter = ipv4.Assign (wifiDevices);
-  Ipv4InterfaceContainer sourceIpv4Inter = ipv4.Assign (sourceWifiDevice);
+  
+  address.SetBase ("10.1.1.0", "255.255.255.0");
+  Ipv4InterfaceContainer wifiInter;
+  wifiInter = address.Assign (wifiDevices);
+  
+  address.SetBase ("10.1.2.0", "255.255.255.0");
+  Ipv4InterfaceContainer sourceInter;
+  sourceInter = address.Assign (sourceWifiDevice);
 
   
 //  ipv4.SetBase("10.1.2.0", "255.255.255.0");
@@ -618,12 +625,21 @@ main (int argc, char *argv[])
   
   GossipHelper gh;
   ApplicationContainer app;
-  app = gh.Install(sourceNode);
+  app = gh.Install(sourceNodes.Get(1));
   
   //GetGossipApp(c.Get(0))->AddNeighbor(i.GetAddress(0), i.GetAddress(1));
 //  GetGossipApp(nodes2.Get(Edge1))->AddNeighbor(InterfaceCont.GetAddress(0),InterfaceCont.GetAddress(1));
 
   PrintNodePositionAndAddress (wifiNodes);
+//  PrintNodePositionAndAddress (sourceNodes);
+  
+  Ptr<Node> node = sourceNodes.Get(0);
+  Ptr<Ipv4> ipv4 = node->GetObject<Ipv4>();
+    Ipv4InterfaceAddress iaddr = ipv4->GetAddress(2,0);
+    Ipv4Address addri = iaddr.GetLocal();
+
+//    std::cout << "Node " << node->GetId() << " is at (" << pos.x << ", " << pos.y << ", " << pos.z << ")\n"; 
+    std::cout << "Node " << node->GetId() << "'s IP address is " << addri << "\n";
 
   std::vector<neighbors> neighborList;
   neighborList = getNeighbors (wifiNodes, maxRange);
@@ -651,7 +667,7 @@ main (int argc, char *argv[])
   for (unsigned int j = 0; j < neighborList.size(); j++){
 //    std::cout << "Working on node " << neighborList[j].sourceNode << std::endl;
     for (unsigned int i = 0; i < neighborList[j].neighborNodes.size(); i++) {
-      GetGossipApp(wifiNodes.Get(neighborList[j].sourceNode))->AddNeighbor(ipv4Inter.GetAddress(neighborList[j].sourceNode), ipv4Inter.GetAddress(neighborList[j].neighborNodes[i]));
+      GetGossipApp(wifiNodes.Get(neighborList[j].sourceNode))->AddNeighbor(wifiInter.GetAddress(neighborList[j].sourceNode), wifiInter.GetAddress(neighborList[j].neighborNodes[i]));
 //      std::cout << "The neighbor nodes are " << neighborList[j].neighborNodes[i] << std::endl;
     }
   }
@@ -679,7 +695,7 @@ main (int argc, char *argv[])
   }
 
 //  Ptr<GossipGenerator> a = GetGossipApp(wifiNodes.Get(0));
-  Ptr<Gossip> a = GetGossip(sourceNode.Get(0));
+  Ptr<Gossip> a = GetGossip(sourceNodes.Get(0));
 //  GeneratePackets(a, 1, wifiNodes, sourceNode);
   
 //  a->SetCurrentValue( 2 );
@@ -752,7 +768,7 @@ main (int argc, char *argv[])
   //NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with RandomRectanglePositionAllocator 100 by 100");
 
   //Simulator::Stop (Seconds (30.0));
-  Simulator::Schedule (Seconds(1.0), &GeneratePackets, a, 1, wifiNodes, sourceNode);  
+  Simulator::Schedule (Seconds(1.0), &GeneratePackets, a, 1, wifiNodes, sourceNodes);  
 
   Simulator::Stop(Seconds (simulationTime + 0.1));
   Simulator::Run ();
