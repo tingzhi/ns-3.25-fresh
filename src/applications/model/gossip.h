@@ -167,6 +167,8 @@ public:
 //  Ptr<UniformRandomVariable> x;
 //  Ptr<UniformRandomVariable> y; // used for ChooseRandomNeighbor function
   
+  std::vector<double> GetSentPktTime (void); 
+  
   
 /************************************************************************/
 
@@ -184,6 +186,7 @@ protected:
   //Ptr<EnergySource> source;
   int seqNum;
   std::vector<int> sourceNodePktStore;
+  std::vector<double> sentPktTime;
 //  std::vector<int> rxPktStore;
   
 //  Time packetInterval;

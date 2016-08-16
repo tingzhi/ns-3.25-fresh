@@ -151,6 +151,9 @@ public:
   void HandleAck2(void);
   void HandleSolicit2(Ipv4Address src,Ipv4Address dest);
   void HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload_in[]);
+  void StoreReceivedDataTime (bool newData, Time receivedDataTime);
+  
+  std::vector<double> GetRxDataTime ();
   
   EnergySourceContainer src;
   Ptr<EnergySource> energySource;
@@ -175,6 +178,9 @@ protected:
   std::vector<int> sourceNodePktStore;
   std::vector<int> rxPktStore;
   bool isNew;
+  std::vector<double> rxDataTime;
+
+  
   
   /**
    * \brief Dispose method.

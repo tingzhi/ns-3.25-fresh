@@ -241,6 +241,18 @@ GossipGenerator::HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload
       }
     }
   }
+  StoreReceivedDataTime(isNew, ReceivedData);
+}
+
+void
+GossipGenerator::StoreReceivedDataTime (bool newData, Time receivedDataTime) {
+  NS_LOG_FUNCTION(this);
+  if (newData) {
+    rxDataTime.push_back(receivedDataTime.GetSeconds());
+  }
+  else {
+    // Do nothing...
+  }
 }
 
 std::vector<int>
@@ -418,6 +430,13 @@ GossipGenerator::GetReceivedDataTime ( void )
 {
   NS_LOG_FUNCTION (this);
   return ReceivedData;
+}
+
+std::vector<double>
+GossipGenerator::GetRxDataTime ( void )
+{
+  NS_LOG_FUNCTION (this);
+  return rxDataTime;
 }
 
 void

@@ -408,6 +408,38 @@ PrintNodePositionAndAddress (NodeContainer wifiNodes) {
   } 
 }
 
+void
+PrintDoubleVector (std::vector<double> vec) {
+  for (uint32_t i = 0; i < vec.size(); i++) {
+    std::cout << vec[i] << " "; 
+  }
+}
+
+std::vector<double>
+calBroadcastTime (std::vector<double> txVec, std::vector<double> rxVec) {
+  std::vector<double> broadcastTime;
+  bool sameSize;
+  
+  if (txVec.size() == rxVec.size()) {
+    sameSize = true;
+  }
+  else {
+    sameSize = false;
+  }
+  
+  if (sameSize) {
+    for (uint32_t i = 0; i < rxVec.size(); i++) {
+      double diff = rxVec[i] - txVec[i];
+      broadcastTime.push_back(diff);
+    }
+  }
+  else {
+    std::cout << "sendPktTime and rxDataTime vectors are not in same size." << std::endl;
+    std::cout << "rxDataTime vector size is " << rxVec.size() << std::endl;
+  }
+  return broadcastTime;
+}
+
 int 
 main (int argc, char *argv[])
 {
@@ -416,7 +448,7 @@ main (int argc, char *argv[])
   std::string phyMode ("DsssRate1Mbps");
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 5;
-  uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
+  uint32_t numNodes = 150;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
 //  uint32_t sinkNode = 0;
 //  uint32_t sourceNode = 2;
   double interval = 30.0; // seconds
@@ -425,7 +457,7 @@ main (int argc, char *argv[])
   double maxRange = 100;
   std::string transportProt = "Tcp";
   std::string socketType = "ns3::TcpSocketFactory";
-  double simulationTime = 1000.0; // seconds
+  double simulationTime = 100.0; // seconds
 
   CommandLine cmd;
   cmd.AddValue("transportProt", "Transport protocol to use:Tcp, Udp", transportProt);
@@ -801,7 +833,61 @@ main (int argc, char *argv[])
   NS_LOG_INFO("Average amount of sent messages per node: " << AvgMessagesPerNode);
   NS_LOG_INFO("Time until information was spread: " << MaxTime.GetSeconds() << "s" << endl);
   simstats ret(MaxTime.GetSeconds(),MaxHops,AvgMessagesPerNode);
-
+  
+  std::vector<double> sentPktTime;
+  sentPktTime = a->GetSentPktTime();
+  
+  std::cout << "For source node, the sending time is \n";
+  PrintDoubleVector(sentPktTime);
+  std::cout << "\n";
+  
+  for (uint32_t i = 0; i < numNodes; i++) 
+  {
+    std::vector<double> broadcastTime;
+    Ptr<GossipGenerator> gossipApp = GetGossipApp(wifiNodes.Get(i));
+    std::vector<double> rxDataTime;
+    rxDataTime = gossipApp->GetRxDataTime();
+    
+    broadcastTime = calBroadcastTime(sentPktTime, rxDataTime);
+    
+    std::cout << "For Wifi Node " << i << ", the receiving time is \n";
+    PrintDoubleVector(broadcastTime);
+    std::cout << "\n";
+//    std::cout << "For Wifi Node " << i << ", the receiving time is \n";
+//    PrintDoubleVector(rxDataTime);
+//    std::cout << "\n";
+  }
+  
+  std::vector<double> broadcastTime;
+  Ptr<GossipGenerator> gossipApp = GetGossipApp(wifiNodes.Get(0));
+  std::vector<double> rxDataTime = gossipApp->GetRxDataTime();
+  
+  broadcastTime = calBroadcastTime(sentPktTime, rxDataTime);
+  
+  std::cout << "For Node 0, the broadcast time is \n";
+  PrintDoubleVector(broadcastTime);
+  std::cout << "\n";
+  
+  
+  std::vector<double> brTime;
+  
+  for (uint32_t i = 0; i < sentPktTime.size(); i++) {
+    double maxTime = 0.0;
+    for (uint32_t k = 0; k < numNodes; k++) {
+      Ptr<GossipGenerator> gossipApp = GetGossipApp(wifiNodes.Get(k));
+      std::vector<double> rxDataTime = gossipApp->GetRxDataTime();
+      double diff = rxDataTime[i] - sentPktTime[i];
+      
+      maxTime = std::max(diff, maxTime);
+    }
+    brTime.push_back(maxTime);
+  }
+  
+  std::cout << "The broadcast time for each data packet are: \n";
+  PrintDoubleVector(brTime);
+  std::cout << "\n";
+  
+  
   Simulator::Destroy ();
   return 0;
 }

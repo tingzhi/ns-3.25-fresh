@@ -91,6 +91,7 @@ Gossip::SendPayload(Ipv4Address src, Ipv4Address dest)
 
   Ptr<Icmpv4L4Protocol> icmp = this->GetNode()->GetObject<Icmpv4L4Protocol>(); 
   icmp->SendData(header, data);
+  sentPktTime.push_back(Simulator::Now().GetSeconds());
 }
 
 //void
@@ -125,6 +126,13 @@ Gossip::PrintSentPkt () {
     std::cout << sourceNodePktStore[i] << " " ;
   }
   std::cout << std::endl;
+}
+
+std::vector<double>
+Gossip::GetSentPktTime (void) 
+{
+  NS_LOG_FUNCTION (this);
+  return sentPktTime;
 }
 
 int
