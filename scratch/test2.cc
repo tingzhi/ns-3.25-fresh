@@ -448,7 +448,7 @@ main (int argc, char *argv[])
   std::string phyMode ("DsssRate1Mbps");
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 5;
-  uint32_t numNodes = 150;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
+  uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
 //  uint32_t sinkNode = 0;
 //  uint32_t sourceNode = 2;
   double interval = 30.0; // seconds
@@ -650,8 +650,8 @@ main (int argc, char *argv[])
 //  }
   
   GossipGeneratorHelper ggh ;
-  Time GossipInterval = Seconds(0.5); // Must be larger than the round-trip-time! (c.f. LinkDelay)
-  Time SolicitInterval = Seconds(1.0); //not planning on using this attribute
+  Time GossipInterval = Seconds(2.0); // Must be larger than the round-trip-time! (c.f. LinkDelay)
+  Time SolicitInterval = Seconds(10.0); //not planning on using this attribute
   
   ApplicationContainer nodeApps;   
   nodeApps = ggh.Install(wifiNodes);
@@ -886,6 +886,45 @@ main (int argc, char *argv[])
   std::cout << "The broadcast time for each data packet are: \n";
   PrintDoubleVector(brTime);
   std::cout << "\n";
+  
+  std::vector<double> protocolOverhead;
+  
+  for (uint32_t i = 0; i < numNodes; i++){
+    Ptr<GossipGenerator> gossipApp2 = GetGossipApp(wifiNodes.Get(i));
+    
+    int sentMsg = gossipApp2->GetSentMessages();
+    int sentPayload = gossipApp2->GetSentPayload();
+    int sentAck = gossipApp2->GetSentAck();
+    int sentSolicit = gossipApp2->GetSentSolicit();
+    
+    std::cout << "For Node " << i << std::endl;
+    std::cout << "The sent acks are " << sentAck << std::endl;
+    std::cout << "The sent solicits are " << sentSolicit << std::endl;
+    std::cout << "The sent msgs are " << sentMsg << std::endl;
+
+    std::cout << "The sent payload are " << sentPayload << std::endl;
+
+    double overhead = (double)sentMsg/(sentPayload + sentMsg);
+    protocolOverhead.push_back(overhead);
+    
+    std::cout << "The overhead for Wifi Node " << i << " is " << overhead << std::endl;
+  }
+  
+  std::cout << "The protocol overhead for each node is " << std::endl;
+  PrintDoubleVector(protocolOverhead);
+  std::cout << "\n";
+  
+  std::cout << "The average protocol overhead is " << std::endl;
+  double temp = 0;
+  for (uint32_t i = 0; i < protocolOverhead.size(); i++) {
+    temp = temp + protocolOverhead[i];
+  }
+  double avg = temp/(double)protocolOverhead.size();
+  std::cout << avg;
+  
+  
+  
+  
   
   
   Simulator::Destroy ();

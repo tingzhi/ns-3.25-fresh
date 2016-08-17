@@ -39,7 +39,10 @@ GossipGenerator::GossipGenerator ()
   NS_LOG_FUNCTION (this);
   isNew = false;
   CurrentValue = 0;
-  SentMessages = 0;
+//  SentMessages = 0;
+  SentAck = 0;
+  SentSolicit = 0;
+  SentPayload = 0;
   ReceivedData = Seconds(0);
   halt = false;
   gossip_delta_t = Seconds(0.001);
@@ -303,6 +306,13 @@ GossipGenerator::SendMessage(Ipv4Address src, Ipv4Address dest, int type)
   NS_LOG_INFO(" Time: " << Simulator::Now ().GetSeconds () << "s");
 
   SentMessages++;
+  if (type == TYPE_ACK) {
+    SentAck++;
+  }
+  else {
+    SentSolicit++;
+  }
+  
   Ipv4Header header = Ipv4Header ();
   header.SetDestination (dest);
   header.SetPayloadSize (0);
@@ -327,7 +337,7 @@ GossipGenerator::SendPayload(Ipv4Address src, Ipv4Address dest)
   NS_LOG_INFO("GossipGenerator::SendPayload " << src << " -> " << dest << " Value:" << CurrentValue );
   NS_LOG_INFO(" Time: " << Simulator::Now ().GetSeconds () << "s");
 
-  SentMessages++;
+  SentPayload++;
   Ipv4Header header = Ipv4Header ();
   header.SetDestination (dest);
   header.SetPayloadSize (0);
@@ -423,6 +433,27 @@ GossipGenerator::GetSentMessages ( void )
 {
   NS_LOG_FUNCTION (this);
   return SentMessages;
+}
+
+int
+GossipGenerator::GetSentSolicit ( void )
+{
+  NS_LOG_FUNCTION (this);
+  return SentSolicit;
+}
+
+int
+GossipGenerator::GetSentAck ( void )
+{
+  NS_LOG_FUNCTION (this);
+  return SentAck;
+}
+
+int
+GossipGenerator::GetSentPayload ( void )
+{
+  NS_LOG_FUNCTION (this);
+  return SentPayload;
 }
 
 Time
