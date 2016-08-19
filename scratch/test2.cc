@@ -239,21 +239,29 @@ GeneratePackets (Ptr<Gossip> gossip, uint32_t pktNum, NodeContainer wifiNodes, N
   srcAddr = GetIpv4(sourceNode.Get(1), 1);
   destAddr = GetIpv4(wifiNodes.Get(0), 2);
   
-  std::cout << "srcAddr " << srcAddr << std::endl;
-  std::cout << "destAddr " << destAddr << std::endl;
+//  std::cout << "srcAddr " << srcAddr << std::endl;
+//  std::cout << "destAddr " << destAddr << std::endl;
   
   gossip->SendPayload(srcAddr, destAddr);
   cout << "GeneratePackets Function! pktNum " <<  pktNum << endl;
   
-  Simulator::Schedule (Seconds(30.0), &GeneratePackets, gossip, pktNum+1, wifiNodes, sourceNode);
+  Simulator::Schedule (Seconds(20.0), &GeneratePackets, gossip, pktNum+1, wifiNodes, sourceNode);
 }
 
 /// Trace function for remaining energy at node.
 void
-RemainingEnergy (double oldValue, double remainingEnergy)
+RemainingEnergy (std::string context, double oldValue, double remainingEnergy)
 {
-  NS_LOG_UNCOND (Simulator::Now ().GetSeconds ()
+//  NS_LOG_UNCOND ("Context:" << context << " --- " << Simulator::Now ().GetSeconds ()
+//                 << "s Current remaining energy = " << remainingEnergy << "J");
+  if (remainingEnergy <= 150) {
+    NS_LOG_UNCOND ("Context:" << context << " --- " << Simulator::Now ().GetSeconds ()
                  << "s Current remaining energy = " << remainingEnergy << "J");
+    Simulator::Stop();
+  }
+  else {
+    // Do nothing...
+  }
 }
 
 /// Trace function for total energy consumption at node.
@@ -368,9 +376,14 @@ updateFanout (EnergySourceContainer sources, std::vector<neighbors> neighborList
 }
 
 void
-updateEnergyFraction (EnergySourceContainer sources) {
-  Simulator::Schedule (Seconds(2), &updateEnergyFraction, sources);
-  std::cout << "energy fraction is " << sources.Get(0)->GetEnergyFraction() << std::endl;
+updateEnergyFraction (EnergySourceContainer sources, uint32_t numNodes) {
+  Simulator::Schedule (Seconds(2), &updateEnergyFraction, sources, numNodes);
+//  std::cout << "energy fraction is " << sources.Get(0)->GetEnergyFraction() << std::endl;
+  
+  for(uint32_t i = 0; i < numNodes; i++) {
+    std::cout << "Energy Fraction of Node " << i << " is " << sources.Get(i)->GetEnergyFraction() << "\n";
+    
+  }
 
 }
 
@@ -410,6 +423,7 @@ PrintNodePositionAndAddress (NodeContainer wifiNodes) {
 
 void
 PrintDoubleVector (std::vector<double> vec) {
+  std::cout << "Vector size is " << vec.size() << "\n";
   for (uint32_t i = 0; i < vec.size(); i++) {
     std::cout << vec[i] << " "; 
   }
@@ -440,6 +454,16 @@ calBroadcastTime (std::vector<double> txVec, std::vector<double> rxVec) {
   return broadcastTime;
 }
 
+static inline std::string
+PrintID (Ptr<Node> n) {
+    uint32_t id = n->GetId();
+
+    std::ostringstream oss;
+    oss << "ID: " << id;
+
+    return oss.str ();
+}
+
 int 
 main (int argc, char *argv[])
 {
@@ -448,16 +472,16 @@ main (int argc, char *argv[])
   std::string phyMode ("DsssRate1Mbps");
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 5;
-  uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
+  uint32_t numNodes = 40;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
 //  uint32_t sinkNode = 0;
 //  uint32_t sourceNode = 2;
   double interval = 30.0; // seconds
   bool verbose = false;
   bool tracing = false;
-  double maxRange = 100;
+  double maxRange = 80;
   std::string transportProt = "Tcp";
   std::string socketType = "ns3::TcpSocketFactory";
-  double simulationTime = 100.0; // seconds
+  double simulationTime = 5000.0; // seconds
 
   CommandLine cmd;
   cmd.AddValue("transportProt", "Transport protocol to use:Tcp, Udp", transportProt);
@@ -650,8 +674,8 @@ main (int argc, char *argv[])
 //  }
   
   GossipGeneratorHelper ggh ;
-  Time GossipInterval = Seconds(2.0); // Must be larger than the round-trip-time! (c.f. LinkDelay)
-  Time SolicitInterval = Seconds(10.0); //not planning on using this attribute
+  Time GossipInterval = Seconds(1.0); // Must be larger than the round-trip-time! (c.f. LinkDelay)
+  Time SolicitInterval = Seconds(5.0); //not planning on using this attribute
   
   ApplicationContainer nodeApps;   
   nodeApps = ggh.Install(wifiNodes);
@@ -751,16 +775,25 @@ main (int argc, char *argv[])
   /***************************************************************************/
   // all sources are connected to node 1
   // energy source
-/*
 
-  Ptr<BasicEnergySource> basicSourcePtr = DynamicCast<BasicEnergySource> (sources.Get (1));
-  basicSourcePtr->TraceConnectWithoutContext ("RemainingEnergy", MakeCallback (&RemainingEnergy));
+  for (uint32_t i = 0; i < numNodes; i++) {
+    Ptr<BasicEnergySource> basicSourcePtr = DynamicCast<BasicEnergySource> (sources.Get (i));
+//  basicSourcePtr->TraceConnectWithoutContext ("RemainingEnergy", MakeCallback (&RemainingEnergy));
+  
+    basicSourcePtr->TraceConnect ("RemainingEnergy",PrintID(sources.Get(i)->GetNode()), MakeCallback (&RemainingEnergy));
+  }
+
+  
+//  Config::Connect ("/NodeList/0/$ns3::BasicEnergySource/RemainingEnergy",
+//                     MakeCallback (&RemainingEnergy));
+  
+          
   // device energy model
-  Ptr<DeviceEnergyModel> basicRadioModelPtr =
-    basicSourcePtr->FindDeviceEnergyModels ("ns3::WifiRadioEnergyModel").Get (0);
-  NS_ASSERT (basicRadioModelPtr != NULL);
-  basicRadioModelPtr->TraceConnectWithoutContext ("TotalEnergyConsumption", MakeCallback (&TotalEnergy));
-*/
+//  Ptr<DeviceEnergyModel> basicRadioModelPtr =
+//    basicSourcePtr->FindDeviceEnergyModels ("ns3::WifiRadioEnergyModel").Get (0);
+//  NS_ASSERT (basicRadioModelPtr != NULL);
+//  basicRadioModelPtr->TraceConnectWithoutContext ("TotalEnergyConsumption", MakeCallback (&TotalEnergy));
+
 /*
   Ptr<BasicEnergySource> energySourcePtr = DynamicCast<BasicEnergySource> (sources.Get(1));
   NS_ASSERT (energySourcePtr != NULL);  
@@ -797,16 +830,25 @@ main (int argc, char *argv[])
 //  std::cout << "energy fraction is " << sources.Get(0)->GetEnergyFraction() << std::endl;
   
   //Simulator::Schedule (Seconds(0.5), &(sources.Get(0)->GetEnergyFraction()));
-//    Simulator::Schedule (Seconds(2), &updateEnergyFraction, sources);
 
   // Output what we are doing
   //NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with RandomRectanglePositionAllocator 100 by 100");
 
   //Simulator::Stop (Seconds (30.0));
   Simulator::Schedule (Seconds(1.0), &GeneratePackets, a, 1, wifiNodes, sourceNodes);  
+  
+//  Simulator::Schedule (Seconds(2), &updateEnergyFraction, sources, numNodes);
+
+  
+//    std::cout << "energy fraction is " << sources.Get(0)->GetEnergyFraction() << std::endl;
+
 
   Simulator::Stop(Seconds (simulationTime + 0.1));
   Simulator::Run ();
+  
+  // When one node's energy source fraction is lower than 0.02, store the time and stop simulation.
+  
+  
   
   NS_LOG_INFO(endl << " ---- Print results ---" << endl);
   int MaxHops = 0;
@@ -834,6 +876,7 @@ main (int argc, char *argv[])
   NS_LOG_INFO("Time until information was spread: " << MaxTime.GetSeconds() << "s" << endl);
   simstats ret(MaxTime.GetSeconds(),MaxHops,AvgMessagesPerNode);
   
+  // Source node packets sent time vector
   std::vector<double> sentPktTime;
   sentPktTime = a->GetSentPktTime();
   
@@ -847,6 +890,15 @@ main (int argc, char *argv[])
     Ptr<GossipGenerator> gossipApp = GetGossipApp(wifiNodes.Get(i));
     std::vector<double> rxDataTime;
     rxDataTime = gossipApp->GetRxDataTime();
+    
+    std::vector<int> rxPktStore;
+    rxPktStore = gossipApp->GetRxPktStore();
+    std::cout << "For Wifi Node " << i << ", the receiving pkts are \n";
+    for(uint32_t j = 0; j < rxPktStore.size(); j++) {
+      std::cout << rxPktStore[j] << " ";
+    }
+    std::cout << "\n";
+    
     
     broadcastTime = calBroadcastTime(sentPktTime, rxDataTime);
     
@@ -884,6 +936,7 @@ main (int argc, char *argv[])
   }
   
   std::cout << "The broadcast time for each data packet are: \n";
+  std::cout << "size of the vector is " << brTime.size() << "\n";
   PrintDoubleVector(brTime);
   std::cout << "\n";
   
@@ -921,11 +974,6 @@ main (int argc, char *argv[])
   }
   double avg = temp/(double)protocolOverhead.size();
   std::cout << avg;
-  
-  
-  
-  
-  
   
   Simulator::Destroy ();
   return 0;

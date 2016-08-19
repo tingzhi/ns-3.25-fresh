@@ -155,6 +155,8 @@ public:
   int GetSentPayload ( void );
   int GetSentSolicit ( void );
   int GetSentAck ( void );
+  std::vector<int> GetRxPktStore (void);
+
 
   std::vector<double> GetRxDataTime ();
   

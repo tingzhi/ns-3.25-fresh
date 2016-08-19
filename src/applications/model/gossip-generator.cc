@@ -98,7 +98,7 @@ GossipGenerator::GetEnergySource (Ptr<EnergySource> testSrc)
 
 unsigned int 
 GossipGenerator::calFanout () {
-  unsigned int fanout = 0;
+  unsigned int fanout = 5;
   double remainingEnergyPercentage = srcPtr->GetEnergyFraction();
   
   if (remainingEnergyPercentage >= 0.8)
@@ -118,7 +118,7 @@ GossipGenerator::calFanout () {
   //std::cout << "node " << nodeIndex << "'s neighborNode size is " << neighborList.at(nodeIndex).neighborNodes.size() << std::endl;
 
 //  std::cout << "neighborlist size is " << nb->neighborNodes.size() << std::endl;
-  std::cout << "FANOUT: fanout for node " << this->GetNode()->GetId() << " is " << std::min(fanout, (unsigned int)neighbours[1].size()) << std::endl;
+//  std::cout << "FANOUT: fanout for node " << this->GetNode()->GetId() << " is " << std::min(fanout, (unsigned int)neighbours[1].size()) << std::endl;
   unsigned int ret = (unsigned int) std::min(fanout, (unsigned int)neighbours[1].size());
   return ret;
 //  return std::min(fanout, (int)neighbours[1].size());
@@ -220,6 +220,8 @@ GossipGenerator::HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload
       PacketHops = hops;
       ReceivedData = Simulator::Now ();
       seqNum = seq;
+      StoreReceivedDataTime(isNew, ReceivedData);
+
     }
     else {
       isNew = false;
@@ -238,13 +240,14 @@ GossipGenerator::HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload
         PacketHops = hops;
         ReceivedData = Simulator::Now ();
         seqNum = seq;
+        StoreReceivedDataTime(isNew, ReceivedData);
+
       }
       else {
         isNew = false;
       }
     }
   }
-  StoreReceivedDataTime(isNew, ReceivedData);
 }
 
 void
@@ -277,11 +280,11 @@ GossipGenerator::ChooseNeighbors () {
     }
   }
   
-  std::cout << "CHOOSE NEIGHBORS: the random index vector is " << std::endl;
-  for (unsigned int i = 0; i < vec.size(); i++) {
-    std::cout << vec[i] << " ";
-  }
-  std::cout << std::endl;
+//  std::cout << "CHOOSE NEIGHBORS: the random index vector is " << std::endl;
+//  for (unsigned int i = 0; i < vec.size(); i++) {
+//    std::cout << vec[i] << " ";
+//  }
+//  std::cout << std::endl;
   
   return vec;
 }
@@ -292,7 +295,7 @@ GossipGenerator::ChooseRandomNeighbor(Ipv4Address ipv4array[2]){
 //  if ((unsigned int)(x->GetValue(0.0, (double)rn-1)) < (unsigned int)rm){
   //double temp = x->GetValue(0.0, (double)neighbours[1].size());
   uint32_t temp_rnd = y->GetInteger(0, neighbours[1].size()-1);
-  std::cout << "From Node " << this->GetNode()->GetId() << " CHOOSE_RANDOM_NEIGHBOR index " << temp_rnd << std::endl;
+//  std::cout << "From Node " << this->GetNode()->GetId() << " CHOOSE_RANDOM_NEIGHBOR index " << temp_rnd << std::endl;
   //int temp_rnd = rand() % neighbours[0].size(); // Note: Seed, if desired! // TODO may not be random enough.
   ipv4array[0] = neighbours[0].at(0);
   ipv4array[1] = neighbours[1].at(temp_rnd);
@@ -470,6 +473,13 @@ GossipGenerator::GetRxDataTime ( void )
   return rxDataTime;
 }
 
+std::vector<int>
+GossipGenerator::GetRxPktStore ( void )
+{
+  NS_LOG_FUNCTION (this);
+  return rxPktStore;
+}
+
 void
 GossipGenerator::GossipProcess(void)
 {
@@ -485,15 +495,15 @@ GossipGenerator::GossipProcess(void)
       std::vector<int> dest_vector;
       dest_vector = ChooseNeighbors();
       
-      std::cout << "dest_vector content" << std::endl;
+//      std::cout << "dest_vector content" << std::endl;
       for (unsigned int i = 0; i < dest_vector.size(); i++) {
         std::cout << dest_vector[i] << " " ;
       }
       
-      std::cout << "GOSSIP PROCESS: The source node ip is " << neighbours[0].at(0) << std::endl;
+//      std::cout << "GOSSIP PROCESS: The source node ip is " << neighbours[0].at(0) << std::endl;
       for (unsigned int i = 0; i < dest_vector.size(); i++) {
         SendPayload(neighbours[0].at(0), neighbours[1].at(dest_vector[i]));
-        std::cout << "GOSSIP PROCESS: The dest node ip is " << neighbours[1].at(dest_vector[i]) << std::endl;
+//        std::cout << "GOSSIP PROCESS: The dest node ip is " << neighbours[1].at(dest_vector[i]) << std::endl;
       }
     }
   }
@@ -511,15 +521,15 @@ GossipGenerator::GossipProcess2(void)
     std::vector<int> dest_vector;
     dest_vector = ChooseNeighbors();
 
-    std::cout << "dest_vector content" << std::endl;
-    for (unsigned int i = 0; i < dest_vector.size(); i++) {
-      std::cout << dest_vector[i] << " " ;
-    }
+//    std::cout << "dest_vector content" << std::endl;
+//    for (unsigned int i = 0; i < dest_vector.size(); i++) {
+//      std::cout << dest_vector[i] << " " ;
+//    }
 
-    std::cout << "GOSSIP PROCESS: The source node ip is " << neighbours[0].at(0) << std::endl;
+//    std::cout << "GOSSIP PROCESS: The source node ip is " << neighbours[0].at(0) << std::endl;
     for (unsigned int i = 0; i < dest_vector.size(); i++) {
       SendPayload(neighbours[0].at(0), neighbours[1].at(dest_vector[i]));
-      std::cout << "GOSSIP PROCESS: The dest node ip is " << neighbours[1].at(dest_vector[i]) << std::endl;
+//      std::cout << "GOSSIP PROCESS: The dest node ip is " << neighbours[1].at(dest_vector[i]) << std::endl;
     }
   }
   else {
