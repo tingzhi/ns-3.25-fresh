@@ -37,6 +37,7 @@ GossipGenerator::GetTypeId (void)
 GossipGenerator::GossipGenerator ()
 {
   NS_LOG_FUNCTION (this);
+  
   isNew = false;
   CurrentValue = 0;
 //  SentMessages = 0;
@@ -48,7 +49,6 @@ GossipGenerator::GossipGenerator ()
   gossip_delta_t = Seconds(0.001);
   solicit_delta_t = Seconds(5);
   x = CreateObject<UniformRandomVariable> ();
-  
   y = CreateObject<UniformRandomVariable> ();
 //  y->SetAttribute("Min", DoubleValue(0.0));
 //  y->SetAttribute("Max", DoubleValue((double)neighbours[1].size()));
@@ -65,20 +65,6 @@ GossipGenerator::DoDispose ( void )
 {
   NS_LOG_FUNCTION (this);
   Application::DoDispose ();
-}
-
-/*
-void
-GossipGenerator::SendMessage_debug(Ipv4Address src, Ipv4Address dest, int type)
-{
-  SendPayload( src,  dest);
-}
-*/
-
-void
-GossipGenerator::GetEnergySourceContainer (EnergySourceContainer sources)
-{
-  src = sources;
 }
 
 void
@@ -190,10 +176,10 @@ GossipGenerator::HandleSolicit2(Ipv4Address src,Ipv4Address dest)
 }
 
 void
-GossipGenerator::HandlePayload(Ipv4Address src,Ipv4Address dest,uint8_t payload_in[])
+GossipGenerator::HandlePayload(Ipv4Address src,Ipv4Address dest, uint8_t payload_in[])
 {
-  int payload = (int) payload_in[0];
-  int hops = (int) payload_in[1];
+  uint8_t payload = payload_in[0];
+  uint8_t hops = payload_in[1];
   NS_LOG_INFO("GossipGenerator::HandlePayload " << src << " -> " << dest << " Value:" << payload);
   NS_LOG_INFO(" Time: " << Simulator::Now ().GetSeconds () << "s");
   if( payload == CurrentValue)
@@ -211,9 +197,16 @@ GossipGenerator::HandlePayload(Ipv4Address src,Ipv4Address dest,uint8_t payload_
 void
 GossipGenerator::HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload_in[])
 {
-  int payload = (int) payload_in[0];
-  int hops = (int) payload_in[1];
-  int seq = (int) payload_in[2];
+  uint8_t payload = payload_in[0];
+  uint8_t hops = payload_in[1];
+  uint16_t highTemp, low;
+  highTemp = (uint16_t)payload_in[2];
+  low = (uint16_t)payload_in[3];
+  uint16_t high = highTemp << 8;
+  
+//  uint16_t seq = payload_in[2];  // ????
+  uint16_t seq = low + high;
+  
   NS_LOG_INFO("GossipGenerator::HandlePayload " << src << " -> " << dest << " Value:" << payload);
   NS_LOG_INFO(" Time: " << Simulator::Now ().GetSeconds () << "s");
   
@@ -355,23 +348,32 @@ GossipGenerator::SendPayload(Ipv4Address src, Ipv4Address dest)
   header.SetPayloadSize (0);
   header.SetSource (src);
 
-  uint8_t NewPacketHops = (uint8_t) PacketHops + 1; // TODO no cast!
+  uint8_t NewPacketHops = PacketHops + 1; // TODO no cast!
 
   uint8_t data[8];
   for (uint8_t j = 0; j < 8; j++)
   {
     data[j] = 0;
   }
-  data[0] = (uint8_t) CurrentValue; // ONLY use first 8 bits to store data. // TODO May be extended...  
+  data[0] = CurrentValue; // ONLY use first 8 bits to store data. // TODO May be extended...  
   data[1] = NewPacketHops;
-  data[2] = (uint8_t) seqNum;
+//  data[2] = seqNum;   // ?????
+  
+  uint8_t high, low;
+  uint16_t lowTemp;
+  high = uint8_t(seqNum >> 8);
+  lowTemp = seqNum << 8;
+  low = uint8_t(lowTemp >> 8);
+  
+  data[2] = high;
+  data[3] = low;
 
   Ptr<Icmpv4L4Protocol> icmp = this->GetNode()->GetObject<Icmpv4L4Protocol>(); 
   icmp->SendData(header, data);
 }
 
 void
-GossipGenerator::SetCurrentValue ( int val )
+GossipGenerator::SetCurrentValue ( uint8_t val )
 {
   NS_LOG_FUNCTION (this << val);
   CurrentValue = val;
@@ -380,7 +382,7 @@ GossipGenerator::SetCurrentValue ( int val )
 }
 
 void
-GossipGenerator::SetSequenceNumber (int seq)
+GossipGenerator::SetSequenceNumber (uint16_t seq)
 {
   NS_LOG_FUNCTION (this << seq);
   seqNum = seq;
@@ -482,7 +484,7 @@ GossipGenerator::GetRxDataTime ( void )
   return rxDataTime;
 }
 
-std::vector<int>
+std::vector<uint16_t>
 GossipGenerator::GetRxPktStore ( void )
 {
   NS_LOG_FUNCTION (this);

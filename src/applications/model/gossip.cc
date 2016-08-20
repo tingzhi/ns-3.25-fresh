@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright 2015 Marco Falke
+ * Copyright 2016 Tingzhi Li
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -21,7 +21,6 @@
 #include "gossip.h"
 
 namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("GossipApplication");
 
 TypeId
@@ -38,11 +37,12 @@ Gossip::Gossip ()
 {
   NS_LOG_FUNCTION (this);
   
-  CurrentValue = 0;
+  CurrentValue = 2;  
+  seqNum = 0;
+//  pktNum = 1;
+  
   SentMessages = 0;
   PacketHops = 0;
-  seqNum = 0;
-//  packetInterval = Seconds(30.0);
 }
 
 Gossip::~Gossip ()
@@ -57,14 +57,6 @@ Gossip::DoDispose ( void )
   Application::DoDispose ();
 }
 
-/*
-void
-GossipGenerator::SendMessage_debug(Ipv4Address src, Ipv4Address dest, int type)
-{
-  SendPayload( src,  dest);
-}
-*/
-
 void
 Gossip::SendPayload(Ipv4Address src, Ipv4Address dest)
 {
@@ -78,27 +70,32 @@ Gossip::SendPayload(Ipv4Address src, Ipv4Address dest)
   header.SetPayloadSize (0);
   header.SetSource (src);
 
-  uint8_t NewPacketHops = (uint8_t) PacketHops + 1; // TODO no cast!
+//  uint8_t NewPacketHops = (uint8_t) PacketHops + 1; // TODO no cast!
+  uint8_t NewPacketHops = PacketHops + 1;
 
   uint8_t data[8];
   for (uint8_t j = 0; j < 8; j++)
   {
     data[j] = 0;
   }
-  data[0] = (uint8_t) CurrentValue; // ONLY use first 8 bits to store data. // TODO May be extended...  
+  data[0] = CurrentValue; // ONLY use first 8 bits to store data. // TODO May be extended...  
   data[1] = NewPacketHops;
-  data[2] = (uint8_t)seqNum;
+  
+  uint8_t high, low;
+  uint16_t lowTemp;
+  high = uint8_t(seqNum >> 8);
+  lowTemp = seqNum << 8;
+  low = uint8_t(lowTemp >> 8);
+  
+  data[2] = high;
+  data[3] = low;
+  
+//  data[2] = seqNum;
 
   Ptr<Icmpv4L4Protocol> icmp = this->GetNode()->GetObject<Icmpv4L4Protocol>(); 
   icmp->SendData(header, data);
   sentPktTime.push_back(Simulator::Now().GetSeconds());
 }
-
-//void
-//Gossip::SetPacketInterval (Time val) {
-//  NS_LOG_FUNCTION (this);
-//  packetInterval = val;
-//}
 
 void
 Gossip::SetCurrentValue ( int val )
@@ -110,7 +107,7 @@ Gossip::SetCurrentValue ( int val )
 }
 
 void
-Gossip::SetSequenceNumber (int seq)
+Gossip::SetSequenceNumber (uint32_t seq)
 {
   NS_LOG_FUNCTION (this << seq);
   seqNum = seq;
@@ -156,9 +153,9 @@ Gossip::SetSourceNode (NodeContainer c) {
 }
 
 void 
-Gossip::SetNodeNum (uint32_t val) {
+Gossip::SetNumberOfNodes (uint32_t val) {
   NS_LOG_FUNCTION (this);
-  nodeNum = val;
+  numOfNodes = val;
 }
 
 void
@@ -175,35 +172,39 @@ Gossip::GetIpv4 (Ptr<Node> node, uint32_t index) {
 }
 
 void
-Gossip::GeneratePackets (uint32_t pktNum, NodeContainer sourceNode) 
+Gossip::GeneratePackets (void) 
 { 
   NS_LOG_FUNCTION (this);
-  Simulator::Schedule (Seconds(1.0), &Gossip::GeneratePackets, this, pktNum+1, sourceNode);
-  
+
+  Ipv4Address srcAddr, destAddr;
+  srcAddr = GetIpv4(m_sourceNodes.Get(numOfNodes), 1);
+  destAddr = GetIpv4(m_sourceNodes.Get(0), 2);  //  destAddr = GetIpv4(wifiNodes.Get(0), 2);
+
+  std::cout << "srcAddr " << srcAddr << std::endl;
+  std::cout << "destAddr " << destAddr << std::endl;
+
+  // pass # of nodes, sequence number info to udp server
+  udpServer->SetNumberOfNodes(numOfNodes);
+  udpServer->SetSeqNum(seqNum);
+
+  std::cout << "GeneratePackets Function! seqtNum " <<  seqNum << std::endl;
+  SendPayload(srcAddr, destAddr);
+  seqNum++;
+}
+
+void
+Gossip::ControlTraffic (void) {
+  Simulator::Schedule (Seconds(1.0), &Gossip::ControlTraffic, this);
+
   bool flag = udpServer->GetBroadcastStatus();
-
   if (flag == true) {
-    SetCurrentValue( 2 );
-    SetSequenceNumber(pktNum);
-
-    // pass # of nodes, sequence number info to udp server
-    udpServer->SetNumberOfNodes(nodeNum);
-    udpServer->SetSeqNum(pktNum);
-
-    Ipv4Address srcAddr, destAddr;
-    srcAddr = GetIpv4(sourceNode.Get(nodeNum), 1);
-  //  destAddr = GetIpv4(wifiNodes.Get(0), 2);
-    destAddr = GetIpv4(sourceNode.Get(0), 2);
-
-    std::cout << "srcAddr " << srcAddr << std::endl;
-    std::cout << "destAddr " << destAddr << std::endl;
-
-    SendPayload(srcAddr, destAddr);
-    std::cout << "GeneratePackets Function! pktNum " <<  pktNum << std::endl;
+    // send out a new packet
+    GeneratePackets(); 
   }
   else {
     // Do nothing...
   }
+
 }
 
 void
@@ -213,7 +214,8 @@ Gossip::StartApplication ( void )
 
 //  Simulator::Schedule (gossip_delta_t, &GossipGenerator::GossipProcess2, this);
 //  Simulator::Schedule (solicit_delta_t, &GossipGenerator::Solicit2, this);
-  Simulator::Schedule(Seconds(3.0), &Gossip::GeneratePackets, this, 1, m_sourceNodes);
+  Simulator::Schedule(Seconds(3.0), &Gossip::GeneratePackets, this);
+  Simulator::Schedule(Seconds(4.0), &Gossip::ControlTraffic, this);
 }
 
 void

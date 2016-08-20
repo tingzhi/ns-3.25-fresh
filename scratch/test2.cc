@@ -628,7 +628,7 @@ main (int argc, char *argv[])
 
   // install energy source and energy model on all wifi nodes
   BasicEnergySourceHelper basicSourceHelper;
-  basicSourceHelper.Set ("BasicEnergySourceInitialEnergyJ", DoubleValue (5400.0));   // 500mAh = 5400J  100mAh = 1080J
+  basicSourceHelper.Set ("BasicEnergySourceInitialEnergyJ", DoubleValue (1080.0));   // 500mAh = 5400J  100mAh = 1080J
   EnergySourceContainer sources = basicSourceHelper.Install (wifiNodes);
   WifiRadioEnergyModelHelper radioEnergyHelper;
   //radioEnergyHelper.Set ("TxCurrentA", DoubleValue (0.0174));
@@ -760,7 +760,7 @@ main (int argc, char *argv[])
 //  Ptr<GossipGenerator> a = GetGossipApp(wifiNodes.Get(0));
   Ptr<Gossip> a = GetGossip(sourceNodes.Get(numNodes));
   a->SetSourceNode(sourceNodes);
-  a->SetNodeNum(numNodes);
+  a->SetNumberOfNodes(numNodes);
 //  a->SetCurrentValue( 2 );
 
 //  GeneratePackets(a, 1, wifiNodes, sourceNode);
@@ -899,7 +899,7 @@ main (int argc, char *argv[])
     std::vector<double> rxDataTime;
     rxDataTime = gossipApp->GetRxDataTime();
     
-    std::vector<int> rxPktStore;
+    std::vector<uint16_t> rxPktStore;
     rxPktStore = gossipApp->GetRxPktStore();
     std::cout << "For Wifi Node " << i << ", the receiving pkts are \n";
     for(uint32_t j = 0; j < rxPktStore.size(); j++) {

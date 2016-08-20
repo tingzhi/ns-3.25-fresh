@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright 2015 Marco Falke
+ * Copyright 2016 Tingzhi Li 
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -29,18 +29,16 @@
 #include "ns3/nstime.h"
 #include "ns3/simulator.h"
 #include "ns3/gossip-udp-server.h"
-//#include "ns3/energy-module.h"
 
 namespace ns3 {
-//  const uint8_t TYPE_SOLICIT = 21; //!< constant used to indicate type of msg
-//  const uint8_t TYPE_ACK     = 23; //!< constant used to indicate type of msg
 
 /**
  * \ingroup 
- * \class GossipGenerator
+ * \class Gossip
  *
- * \brief An application implementing the gossip protocol to communicate
+ * \brief An application to generate necessary packets to gossip.
  */
+ 
 class Gossip : public Application
 {
 public:
@@ -59,148 +57,41 @@ public:
    * \brief Constructor.
    */
   virtual ~Gossip ();
-
-  /**
-   * \brief add a neighbor
-   * \param ip of the neighbor
-   */
-//  void AddNeighbor( Ipv4Address own,Ipv4Address neighbor );
-
-  /**
-   * \brief Find a random neigbor
-   * \param Store a random source and neighbor address in this array
-   */
-//  void ChooseRandomNeighbor(Ipv4Address neighbor[2]);
-
-  /**
-   * \brief Seed the internal value of a node to initiate the gossip.
-   * \param The internal value.
-   */
+  
   void SetCurrentValue (int val);
-
-  /**
-   * \brief Set the time between two sent messages.
-   * \param The time.
-   */
-//  void SetGossipInterval ( Time val );
-
-  /**
-   * \brief Set the time between two requests.
-   * \param The time.
-   */
-//  void SetSolicitInterval ( Time val );
-
-  /**
-   * \brief Return the current internal value.
-   * \return The value
-   */ 
-//  int GetCurrentValue ( void);
-
-  /**
-   * \brief Return the amount of icmp Messages sent.
-   * \return The value
-   */
   int GetSentMessages ( void);
-
-  /**
-   * \brief Return the number of hops used.
-   * \return The value
-   */
   int GetPacketHops ( void);
 
-  /**
-   * \brief Return the time used until the data was received.
-   * \return The value
-   */
-//  Time GetReceivedDataTime ( void);
-
-  //void SendMessage_debug(Ipv4Address src, Ipv4Address dest, int type);
-
-  /**
-   * \brief Accept and process a received Ack.
-   */
-//  void HandleAck(void);
-
-  /**
-   * \brief Accept and process a request message.
-   * \param the source address
-   * \param the destination address
-   */
-//  void HandleSolicit(Ipv4Address src,Ipv4Address dest);
-
-  /**
-   * \brief Handle payload
-   * \param the source address
-   * \param the destination address
-   * \param the payload
-   */
-//  void HandlePayload(Ipv4Address src,Ipv4Address dest,uint8_t payload[]);
-  
 /************************************************************************/
-  
-//  void GetEnergySource (Ptr<EnergySource> testSrc); 
-//  unsigned int calFanout (); 
-//  std::vector<int> ChooseNeighbors ();
+ 
   void PrintSentPkt ();
-  // void printEnergyFraction (Ptr<EnergySource> source);
-//  void GetEnergySourceContainer (EnergySourceContainer sources);
-  void SetSequenceNumber (int seq);
-  //void SetEnergySource (Ptr<EnergySource> src);
-//  std::vector<Ipv4Address> GetNeighbours (void);
-//  void GossipProcess2(void);
-//  void Solicit2(void);
-//  void HandleAck2(void);
-//  void HandleSolicit2(Ipv4Address src,Ipv4Address dest);
-//  void HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload_in[]);
-//  void SetPacketInterval (Time val);
-  
-  /**
-   * \brief Send the current value to the given destination
-   * \param the source
-   * \param the destination
-   */
+  void SetSequenceNumber (uint32_t seq);
   void SendPayload(Ipv4Address src, Ipv4Address dest);
-  
   Ipv4Address GetIpv4 (Ptr<Node> node, uint32_t index);
-  
-//  EnergySourceContainer src;
-//  Ptr<EnergySource> energySource;
-//  Ptr<EnergySource> srcPtr;
-//  Ptr<UniformRandomVariable> x;
-//  Ptr<UniformRandomVariable> y; // used for ChooseRandomNeighbor function
-  NodeContainer m_sourceNodes;
-  uint32_t nodeNum;
-  Ptr<GossipUdpServer> udpServer;
-  
   std::vector<double> GetSentPktTime (void); 
-  void SetNodeNum (uint32_t val);
-  
-  void GeneratePackets (uint32_t pktNum, NodeContainer sourceNode);
+  void SetNumberOfNodes (uint32_t val);
+  void GeneratePackets (void);
   void SetSourceNode (NodeContainer c);
   void SetUdpServer (Ptr<GossipUdpServer> val);
+  void ControlTraffic (void);
 
   
-  
+  NodeContainer m_sourceNodes;
+  uint32_t numOfNodes;
+//  uint32_t pktNum;
+  Ptr<GossipUdpServer> udpServer;
+
 /************************************************************************/
 
 protected:
     
-  int CurrentValue; //!< The current Value
-
-//  bool halt; //!< If the gossip is paused
-//  Time gossip_delta_t; //!< Time between sending data to the other nodes
-//  Time solicit_delta_t; //!< Time between requests of data from the other nodes
-//  Time ReceivedData; //!< Time when data was first received
+  uint8_t CurrentValue; //!< The current Value
   int SentMessages; //!< Amount of messages sent out
-  int PacketHops; //!< How many hops the data packet experienced
-//  std::vector<Ipv4Address> neighbours[2]; //!< The own addresses and corresponding neighbors of this node
-  //Ptr<EnergySource> source;
-  int seqNum;
-  std::vector<int> sourceNodePktStore;
+  uint8_t PacketHops; //!< How many hops the data packet experienced
+  uint16_t seqNum;
   std::vector<double> sentPktTime;
-//  std::vector<int> rxPktStore;
   
-//  Time packetInterval;
+  std::vector<int> sourceNodePktStore;
   
   /**
    * \brief Dispose method.
@@ -215,8 +106,6 @@ protected:
    */
 //  void SendMessage(Ipv4Address src, Ipv4Address dest, int type);
 
-  
-  
 private:
   /**
    * \brief Start the GossipProcess

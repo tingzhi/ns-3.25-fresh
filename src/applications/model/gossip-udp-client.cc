@@ -156,7 +156,7 @@ GossipUdpClient::Send (void)
   NS_LOG_FUNCTION (this);
 //  NS_ASSERT (m_sendEvent.IsExpired ());
   SeqTsHeader seqTs;
-  seqTs.SetSeq (m_sent);
+  seqTs.SetSeq ((uint32_t)m_sent);
   Ptr<Packet> p = Create<Packet> (m_size-(8+4)); // 8+4 : the size of the seqTs header
   p->AddHeader (seqTs);
 
@@ -192,7 +192,7 @@ GossipUdpClient::Send (void)
 }
 
 void
-GossipUdpClient::SetSeqNum (uint32_t seqNum) {
+GossipUdpClient::SetSeqNum (uint16_t seqNum) {
   NS_LOG_FUNCTION (this);
   m_sent = seqNum;
 }

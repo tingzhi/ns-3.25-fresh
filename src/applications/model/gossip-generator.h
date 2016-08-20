@@ -1,6 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * Copyright 2015 Marco Falke
+ * Copyright 2016 Tingzhi Li
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -76,7 +77,7 @@ public:
    * \brief Seed the internal value of a node to initiate the gossip.
    * \param The internal value.
    */
-  void SetCurrentValue (int val);
+  void SetCurrentValue (uint8_t val);
 
   /**
    * \brief Set the time between two sent messages.
@@ -143,20 +144,20 @@ public:
   std::vector<int> ChooseNeighbors ();
   void PrintSentPkt ();
   // void printEnergyFraction (Ptr<EnergySource> source);
-  void GetEnergySourceContainer (EnergySourceContainer sources);
-  void SetSequenceNumber (int seq);
+//  void GetEnergySourceContainer (EnergySourceContainer sources);
+  void SetSequenceNumber (uint16_t seq);
   //void SetEnergySource (Ptr<EnergySource> src);
   std::vector<Ipv4Address> GetNeighbours (void);
   void GossipProcess2(void);
   void Solicit2(void);
   void HandleAck2(void);
   void HandleSolicit2(Ipv4Address src,Ipv4Address dest);
-  void HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload_in[]);
+  void HandlePayload2(Ipv4Address src,Ipv4Address dest, uint8_t payload_in[]);
   void StoreReceivedDataTime (bool newData, Time receivedDataTime);
   int GetSentPayload ( void );
   int GetSentSolicit ( void );
   int GetSentAck ( void );
-  std::vector<int> GetRxPktStore (void);
+  std::vector<uint16_t> GetRxPktStore (void);
   
   void GetUdpClient (Ptr<GossipUdpClient> udpClientApp);
 
@@ -174,26 +175,25 @@ public:
 
 protected:
     
-  int CurrentValue; //!< The current Value
+  uint8_t CurrentValue; //!< The current Value
+  uint8_t PacketHops; //!< How many hops the data packet experienced
+  
   bool halt; //!< If the gossip is paused
   Time gossip_delta_t; //!< Time between sending data to the other nodes
   Time solicit_delta_t; //!< Time between requests of data from the other nodes
   Time ReceivedData; //!< Time when data was first received
-  int SentMessages; //!< Amount of messages sent out
-  int PacketHops; //!< How many hops the data packet experienced
+  uint32_t SentMessages; //!< Amount of messages sent out
   std::vector<Ipv4Address> neighbours[2]; //!< The own addresses and corresponding neighbors of this node
   //Ptr<EnergySource> source;
-  int seqNum;
-  std::vector<int> sourceNodePktStore;
-  std::vector<int> rxPktStore;
+  uint16_t seqNum;
+  std::vector<uint16_t> sourceNodePktStore;
+  std::vector<uint16_t> rxPktStore;
   bool isNew;
   std::vector<double> rxDataTime;
-  int SentPayload;
-  int SentAck;
-  int SentSolicit;
+  uint32_t SentPayload;
+  uint32_t SentAck;
+  uint32_t SentSolicit;
 
-  
-  
   /**
    * \brief Dispose method.
    */
