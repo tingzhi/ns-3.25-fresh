@@ -1,6 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * Copyright 2015 Marco Falke
+ * Copyright 2016 Tingzhi Li
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -25,8 +26,7 @@ namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("GossipGeneratorApplication");
 
 TypeId
-GossipGenerator::GetTypeId (void)
-{
+GossipGenerator::GetTypeId (void) {
   static TypeId tid = TypeId ("ns3::GossipGenerator")
     .SetParent<Application> ()
     .AddConstructor<GossipGenerator> ()
@@ -34,18 +34,18 @@ GossipGenerator::GetTypeId (void)
   return tid;
 }
 
-GossipGenerator::GossipGenerator ()
-{
+GossipGenerator::GossipGenerator () {
   NS_LOG_FUNCTION (this);
   
   isNew = false;
   CurrentValue = 0;
+  seqNum = 0;
 //  SentMessages = 0;
   SentAck = 0;
   SentSolicit = 0;
   SentPayload = 0;
   ReceivedData = Seconds(0);
-  halt = false;
+//  halt = false;
   gossip_delta_t = Seconds(0.001);
   solicit_delta_t = Seconds(5);
   x = CreateObject<UniformRandomVariable> ();
@@ -55,22 +55,19 @@ GossipGenerator::GossipGenerator ()
   // source = src;
 }
 
-GossipGenerator::~GossipGenerator ()
-{
+GossipGenerator::~GossipGenerator () {
   NS_LOG_FUNCTION (this);
 }
 
 void
-GossipGenerator::DoDispose ( void )
-{
+GossipGenerator::DoDispose ( void ) {
   NS_LOG_FUNCTION (this);
   Application::DoDispose ();
 }
 
 void
-GossipGenerator::GetEnergySource (Ptr<EnergySource> testSrc) 
-{
-  srcPtr = testSrc;
+GossipGenerator::GetEnergySource (Ptr<EnergySource> val) {
+  energySourcePtr = val;
 //  std::cout << "Energy Node: " << this->GetNode()->GetId() << std::endl;
 //  Ptr<EnergySource> source = src.Get(this->GetNode()->GetId());
 ////  this->GetNode()->GetObject<EnergySource>();
@@ -83,14 +80,14 @@ GossipGenerator::GetEnergySource (Ptr<EnergySource> testSrc)
  }
 
 void
-GossipGenerator::GetUdpClient (Ptr<GossipUdpClient> udpClientApp) {
-  udpClient = udpClientApp;
+GossipGenerator::GetUdpClient (Ptr<GossipUdpClient> val) {
+  udpClient = val;
 }
 
 unsigned int 
 GossipGenerator::calFanout () {
   unsigned int fanout = 5;
-  double remainingEnergyPercentage = srcPtr->GetEnergyFraction();
+  double remainingEnergyPercentage = energySourcePtr->GetEnergyFraction();
   
   if (remainingEnergyPercentage >= 0.8)
     fanout = 5;
@@ -136,14 +133,14 @@ GossipGenerator::AddNeighbor(Ipv4Address own,Ipv4Address neighbor)
   */
 }
 
-void
-GossipGenerator::HandleAck(void)
-{
-  NS_LOG_INFO("GossipGenerator::HandleAck");
-  NS_LOG_INFO(" Time: " << Simulator::Now ().GetSeconds () << "s");
-
-  halt = true;
-}
+//void
+//GossipGenerator::HandleAck(void)
+//{
+//  NS_LOG_INFO("GossipGenerator::HandleAck");
+//  NS_LOG_INFO(" Time: " << Simulator::Now ().GetSeconds () << "s");
+//
+//  halt = true;
+//}
 
 void
 GossipGenerator::HandleAck2(void)
@@ -155,16 +152,16 @@ GossipGenerator::HandleAck2(void)
 //  halt = true;
 }
 
-void
-GossipGenerator::HandleSolicit(Ipv4Address src,Ipv4Address dest)
-{
-  NS_LOG_INFO("GossipGenerator::HandleSolicit " << src << " -> " << dest);
-  NS_LOG_INFO(" Time: " << Simulator::Now ().GetSeconds () << "s");
-  if (CurrentValue != 0)
-  {
-    SendPayload(dest,src);
-  }
-}
+//void
+//GossipGenerator::HandleSolicit(Ipv4Address src,Ipv4Address dest)
+//{
+//  NS_LOG_INFO("GossipGenerator::HandleSolicit " << src << " -> " << dest);
+//  NS_LOG_INFO(" Time: " << Simulator::Now ().GetSeconds () << "s");
+//  if (CurrentValue != 0)
+//  {
+//    SendPayload(dest,src);
+//  }
+//}
 
 void
 GossipGenerator::HandleSolicit2(Ipv4Address src,Ipv4Address dest)
@@ -175,37 +172,37 @@ GossipGenerator::HandleSolicit2(Ipv4Address src,Ipv4Address dest)
   SendPayload(dest,src);
 }
 
-void
-GossipGenerator::HandlePayload(Ipv4Address src,Ipv4Address dest, uint8_t payload_in[])
-{
-  uint8_t payload = payload_in[0];
-  uint8_t hops = payload_in[1];
-  NS_LOG_INFO("GossipGenerator::HandlePayload " << src << " -> " << dest << " Value:" << payload);
-  NS_LOG_INFO(" Time: " << Simulator::Now ().GetSeconds () << "s");
-  if( payload == CurrentValue)
-  {
-    SendMessage(dest, src, TYPE_ACK);
-  }
-  else
-  {
-    CurrentValue = payload;
-    PacketHops = hops;
-    ReceivedData = Simulator::Now ();
-  }
-}
+//void
+//GossipGenerator::HandlePayload(Ipv4Address src,Ipv4Address dest, uint8_t payload_in[])
+//{
+//  uint8_t payload = payload_in[0];
+//  uint8_t hops = payload_in[1];
+//  NS_LOG_INFO("GossipGenerator::HandlePayload " << src << " -> " << dest << " Value:" << payload);
+//  NS_LOG_INFO(" Time: " << Simulator::Now ().GetSeconds () << "s");
+//  if( payload == CurrentValue)
+//  {
+//    SendMessage(dest, src, TYPE_ACK);
+//  }
+//  else
+//  {
+//    CurrentValue = payload;
+//    PacketHops = hops;
+//    ReceivedData = Simulator::Now ();
+//  }
+//}
 
 void
 GossipGenerator::HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload_in[])
 {
   uint8_t payload = payload_in[0];
   uint8_t hops = payload_in[1];
+  
   uint16_t highTemp, low;
   highTemp = (uint16_t)payload_in[2];
   low = (uint16_t)payload_in[3];
   uint16_t high = highTemp << 8;
   
-//  uint16_t seq = payload_in[2];  // ????
-  uint16_t seq = low + high;
+  uint16_t seq = low + high;  //  uint16_t seq = payload_in[2];  // ????
   
   NS_LOG_INFO("GossipGenerator::HandlePayload " << src << " -> " << dest << " Value:" << payload);
   NS_LOG_INFO(" Time: " << Simulator::Now ().GetSeconds () << "s");
@@ -220,7 +217,7 @@ GossipGenerator::HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload
       seqNum = seq;
       StoreReceivedDataTime(isNew, ReceivedData);
       
-      udpClient->SetSeqNum(seqNum);
+      udpClient->SetSeqNum((uint32_t)seqNum);
       udpClient->Send();
     }
     else {
@@ -242,7 +239,7 @@ GossipGenerator::HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload
         seqNum = seq;
         StoreReceivedDataTime(isNew, ReceivedData);
         
-        udpClient->SetSeqNum(seqNum);
+        udpClient->SetSeqNum((uint32_t)seqNum);
         udpClient->Send();
       }
       else {
@@ -386,19 +383,19 @@ GossipGenerator::SetSequenceNumber (uint16_t seq)
 {
   NS_LOG_FUNCTION (this << seq);
   seqNum = seq;
-  sourceNodePktStore.push_back(seq);
+//  sourceNodePktStore.push_back(seq);
 //  PrintSentPkt();
 }
 
 // Utility function for debug sourceNodePktStore variable
-void
-GossipGenerator::PrintSentPkt () {
-  std::cout << "Print sourceNodePktStore ..." << std::endl;
-  for (unsigned int i = 0; i < sourceNodePktStore.size(); i++) {
-    std::cout << sourceNodePktStore[i] << " " ;
-  }
-  std::cout << std::endl;
-}
+//void
+//GossipGenerator::PrintSentPkt () {
+//  std::cout << "Print sourceNodePktStore ..." << std::endl;
+//  for (unsigned int i = 0; i < sourceNodePktStore.size(); i++) {
+//    std::cout << sourceNodePktStore[i] << " " ;
+//  }
+//  std::cout << std::endl;
+//}
 
 /*
 void 
@@ -491,34 +488,34 @@ GossipGenerator::GetRxPktStore ( void )
   return rxPktStore;
 }
 
-void
-GossipGenerator::GossipProcess(void)
-{
-  if(!halt)
-  {
-    //reschedule
-    Simulator::Schedule (gossip_delta_t, &GossipGenerator::GossipProcess,this);
-    if (  CurrentValue != 0 )
-    {
-//      Ipv4Address ipv4array[2];
-//      ChooseRandomNeighbor(ipv4array);
-//      SendPayload(ipv4array[0],ipv4array[1]);
-      std::vector<int> dest_vector;
-      dest_vector = ChooseNeighbors();
-      
-//      std::cout << "dest_vector content" << std::endl;
-      for (unsigned int i = 0; i < dest_vector.size(); i++) {
-        std::cout << dest_vector[i] << " " ;
-      }
-      
-//      std::cout << "GOSSIP PROCESS: The source node ip is " << neighbours[0].at(0) << std::endl;
-      for (unsigned int i = 0; i < dest_vector.size(); i++) {
-        SendPayload(neighbours[0].at(0), neighbours[1].at(dest_vector[i]));
-//        std::cout << "GOSSIP PROCESS: The dest node ip is " << neighbours[1].at(dest_vector[i]) << std::endl;
-      }
-    }
-  }
-}
+//void
+//GossipGenerator::GossipProcess(void)
+//{
+//  if(!halt)
+//  {
+//    //reschedule
+//    Simulator::Schedule (gossip_delta_t, &GossipGenerator::GossipProcess,this);
+//    if (  CurrentValue != 0 )
+//    {
+////      Ipv4Address ipv4array[2];
+////      ChooseRandomNeighbor(ipv4array);
+////      SendPayload(ipv4array[0],ipv4array[1]);
+//      std::vector<int> dest_vector;
+//      dest_vector = ChooseNeighbors();
+//      
+////      std::cout << "dest_vector content" << std::endl;
+//      for (unsigned int i = 0; i < dest_vector.size(); i++) {
+//        std::cout << dest_vector[i] << " " ;
+//      }
+//      
+////      std::cout << "GOSSIP PROCESS: The source node ip is " << neighbours[0].at(0) << std::endl;
+//      for (unsigned int i = 0; i < dest_vector.size(); i++) {
+//        SendPayload(neighbours[0].at(0), neighbours[1].at(dest_vector[i]));
+////        std::cout << "GOSSIP PROCESS: The dest node ip is " << neighbours[1].at(dest_vector[i]) << std::endl;
+//      }
+//    }
+//  }
+//}
 
 void
 GossipGenerator::GossipProcess2(void)
@@ -548,18 +545,18 @@ GossipGenerator::GossipProcess2(void)
   }
 }
 
-void
-GossipGenerator::Solicit(void)
-{
-  if(CurrentValue == 0)
-  {
-    //reschedule
-    Simulator::Schedule (solicit_delta_t, &GossipGenerator::Solicit,this);
-    Ipv4Address ipv4array[2];
-    ChooseRandomNeighbor(ipv4array);
-    SendMessage(ipv4array[0],ipv4array[1], TYPE_SOLICIT);
-  }
-}
+//void
+//GossipGenerator::Solicit(void)
+//{
+//  if(CurrentValue == 0)
+//  {
+//    //reschedule
+//    Simulator::Schedule (solicit_delta_t, &GossipGenerator::Solicit,this);
+//    Ipv4Address ipv4array[2];
+//    ChooseRandomNeighbor(ipv4array);
+//    SendMessage(ipv4array[0],ipv4array[1], TYPE_SOLICIT);
+//  }
+//}
 
 void
 GossipGenerator::Solicit2(void)
@@ -576,7 +573,8 @@ GossipGenerator::StartApplication ( void )
 {
   NS_LOG_FUNCTION (this);
 
-  Simulator::Schedule (gossip_delta_t, &GossipGenerator::GossipProcess2, this);
+//  Simulator::Schedule (gossip_delta_t, &GossipGenerator::GossipProcess2, this); 
+  Simulator::Schedule (Seconds(1.0), &GossipGenerator::GossipProcess2, this); 
   Simulator::Schedule (solicit_delta_t, &GossipGenerator::Solicit2, this);
 }
 

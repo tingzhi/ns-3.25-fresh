@@ -140,7 +140,7 @@ GossipUdpServer::StartApplication (void)
 
   m_socket6->SetRecvCallback (MakeCallback (&GossipUdpServer::HandleRead, this));
   
-  Simulator::Schedule(Seconds(5.5), &GossipUdpServer::CheckBroadcastStatus, this);
+  Simulator::Schedule(Seconds(4.5), &GossipUdpServer::CheckBroadcastStatus, this);
 
 }
 
@@ -208,15 +208,15 @@ GossipUdpServer::HandleRead (Ptr<Socket> socket)
 }
 
 void
-GossipUdpServer::SetSeqNum (uint32_t seqNum){
+GossipUdpServer::SetSeqNum (uint32_t val){
   NS_LOG_FUNCTION (this);
-  m_SequenceNumber = seqNum;
+  m_SequenceNumber = val;
 }
 
 void
-GossipUdpServer::SetNumberOfNodes (uint32_t nodeNum) {
+GossipUdpServer::SetNumberOfNodes (uint32_t val) {
   NS_LOG_FUNCTION (this);
-  m_NodeNumber = nodeNum;
+  m_NodeNumber = val;
 }
 
 std::vector<Ipv4Address> 
@@ -237,7 +237,7 @@ GossipUdpServer::CheckBroadcastStatus (void) {
     m_broadcastStatus = true;
     std::cout << "Ack vector content is: ";
     for (uint32_t i = 0; i < m_StoreAck.size(); i++) {
-      std::cout << m_StoreAck[i] << " ";
+      std::cout << m_StoreAck[i] << " | ";
     }
     std::cout << "\n";
     m_StoreAck.clear();

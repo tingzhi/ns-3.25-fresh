@@ -198,28 +198,28 @@ void Graph::DFS(int v)
   std::cout << std::endl; // end the depth first traversal line
 }
 
-void ReceivePacket (Ptr<Socket> socket)
-{
-  while (socket->Recv ())
-    {
-      NS_LOG_UNCOND ("Received one packet!");
-    }
-}
-
-static void GenerateTraffic (Ptr<Socket> socket, uint32_t pktSize, 
-                             uint32_t pktCount, Time pktInterval )
-{
-  if (pktCount > 0)
-    {
-      socket->Send (Create<Packet> (pktSize));
-      Simulator::Schedule (pktInterval, &GenerateTraffic, 
-                           socket, pktSize,pktCount-1, pktInterval);
-    }
-  else
-    {
-      socket->Close ();
-    }
-}
+//void ReceivePacket (Ptr<Socket> socket)
+//{
+//  while (socket->Recv ())
+//    {
+//      NS_LOG_UNCOND ("Received one packet!");
+//    }
+//}
+//
+//static void GenerateTraffic (Ptr<Socket> socket, uint32_t pktSize, 
+//                             uint32_t pktCount, Time pktInterval )
+//{
+//  if (pktCount > 0)
+//    {
+//      socket->Send (Create<Packet> (pktSize));
+//      Simulator::Schedule (pktInterval, &GenerateTraffic, 
+//                           socket, pktSize,pktCount-1, pktInterval);
+//    }
+//  else
+//    {
+//      socket->Close ();
+//    }
+//}
 
 Ipv4Address
 GetIpv4 (Ptr<Node> node, uint32_t index) {
@@ -229,25 +229,25 @@ GetIpv4 (Ptr<Node> node, uint32_t index) {
   return addr;
 }
 
-void
-GeneratePackets (Ptr<Gossip> gossip, uint32_t pktNum, NodeContainer wifiNodes, NodeContainer sourceNode) 
-{ 
-  gossip->SetCurrentValue( 2 );
-  gossip->SetSequenceNumber(pktNum);
-  
-  Ipv4Address srcAddr, destAddr;
-  srcAddr = GetIpv4(sourceNode.Get(1), 1);
-//  destAddr = GetIpv4(wifiNodes.Get(0), 2);
-  destAddr = GetIpv4(sourceNode.Get(0), 2);
-  
-  std::cout << "srcAddr " << srcAddr << std::endl;
-  std::cout << "destAddr " << destAddr << std::endl;
-  
-  gossip->SendPayload(srcAddr, destAddr);
-  cout << "GeneratePackets Function! pktNum " <<  pktNum << endl;
-  
-  Simulator::Schedule (Seconds(20.0), &GeneratePackets, gossip, pktNum+1, wifiNodes, sourceNode);
-}
+//void
+//GeneratePackets (Ptr<Gossip> gossip, uint32_t pktNum, NodeContainer wifiNodes, NodeContainer sourceNode) 
+//{ 
+//  gossip->SetCurrentValue( 2 );
+//  gossip->SetSequenceNumber(pktNum);
+//  
+//  Ipv4Address srcAddr, destAddr;
+//  srcAddr = GetIpv4(sourceNode.Get(1), 1);
+////  destAddr = GetIpv4(wifiNodes.Get(0), 2);
+//  destAddr = GetIpv4(sourceNode.Get(0), 2);
+//  
+//  std::cout << "srcAddr " << srcAddr << std::endl;
+//  std::cout << "destAddr " << destAddr << std::endl;
+//  
+//  gossip->SendPayload(srcAddr, destAddr);
+//  cout << "GeneratePackets Function! pktNum " <<  pktNum << endl;
+//  
+//  Simulator::Schedule (Seconds(20.0), &GeneratePackets, gossip, pktNum+1, wifiNodes, sourceNode);
+//}
 
 /// Trace function for remaining energy at node.
 void
@@ -273,14 +273,14 @@ TotalEnergy (double oldValue, double totalEnergy)
                  << "s Total energy consumed by radio = " << totalEnergy << "J");  
 }
 
-void 
-EnergyFraction(double oldValue, double energyFraction) {
-  //Ptr<BasicEnergySource> energySource = DynamicCast<BasicEnergySource> (sources.Get(0));
-  //std::cout << "energy fraction is " << energySource->GetEnergyFraction() << std::endl;
-  std::cout << "here" << std::endl;
-  NS_LOG_UNCOND (Simulator::Now ().GetSeconds ()
-                 << "s Energy Fraction = " << energyFraction << "J");  
-}
+//void 
+//EnergyFraction(double oldValue, double energyFraction) {
+//  //Ptr<BasicEnergySource> energySource = DynamicCast<BasicEnergySource> (sources.Get(0));
+//  //std::cout << "energy fraction is " << energySource->GetEnergyFraction() << std::endl;
+//  std::cout << "here" << std::endl;
+//  NS_LOG_UNCOND (Simulator::Now ().GetSeconds ()
+//                 << "s Energy Fraction = " << energyFraction << "J");  
+//}
 
 neighbors 
 makeNeighbors (Ptr<Node> nodeA, std::vector<uint32_t> nbNodes)
@@ -344,63 +344,63 @@ printNeighborList (std::vector<neighbors> neighborList) {
 // check how much energy remaining in the energy source after broadcast one packet.
 // check how many packets being sent for broadcasting one packet.
 
-int 
-calFanout (double remainingEnergyPercentage, std::vector<neighbors> neighborList, int nodeIndex) {
-  int fanout = 0;
+//int 
+//calFanout (double remainingEnergyPercentage, std::vector<neighbors> neighborList, int nodeIndex) {
+//  int fanout = 0;
+//
+//  if (remainingEnergyPercentage >= 0.8)
+//    fanout = 5;
+//  else if (remainingEnergyPercentage >= 0.6)
+//    fanout = 4;
+//  else if (remainingEnergyPercentage >= 0.4)
+//    fanout = 3;
+//  else if (remainingEnergyPercentage >= 0.2)
+//    fanout = 2;
+//  else
+//    fanout = 1;
+//
+//  std::cout << "Here!!!!" << std::endl;
+//  std::cout << "Initial fanout was " << fanout << std::endl;
+//  std::cout << "node " << nodeIndex << "'s neighborNode size is " << neighborList.at(nodeIndex).neighborNodes.size() << std::endl;
+//  std::cout << "fanout is " << std::min(fanout, (int)neighborList.at(nodeIndex).neighborNodes.size()) << std::endl;
+//  return std::min(fanout, (int)neighborList.at(nodeIndex).neighborNodes.size());
+//}
 
-  if (remainingEnergyPercentage >= 0.8)
-    fanout = 5;
-  else if (remainingEnergyPercentage >= 0.6)
-    fanout = 4;
-  else if (remainingEnergyPercentage >= 0.4)
-    fanout = 3;
-  else if (remainingEnergyPercentage >= 0.2)
-    fanout = 2;
-  else
-    fanout = 1;
+//int
+//updateFanout (EnergySourceContainer sources, std::vector<neighbors> neighborList, int nodeIndex) {
+//  Ptr<BasicEnergySource> energySource = DynamicCast<BasicEnergySource> (sources.Get(nodeIndex));
+//  std::cout << "energy fraction of node " << nodeIndex << " is " << energySource->GetEnergyFraction() << std::endl;
+//  double frac = energySource->GetEnergyFraction();
+//  int ret = calFanout (frac, neighborList, nodeIndex);
+//  std::cout << "Now the fanout is " << ret << std::endl;
+//  return ret;
+//}
+//
+//void
+//updateEnergyFraction (EnergySourceContainer sources, uint32_t numNodes) {
+//  Simulator::Schedule (Seconds(2), &updateEnergyFraction, sources, numNodes);
+////  std::cout << "energy fraction is " << sources.Get(0)->GetEnergyFraction() << std::endl;
+//  
+//  for(uint32_t i = 0; i < numNodes; i++) {
+//    std::cout << "Energy Fraction of Node " << i << " is " << sources.Get(i)->GetEnergyFraction() << "\n";
+//    
+//  }
+//
+//}
 
-  std::cout << "Here!!!!" << std::endl;
-  std::cout << "Initial fanout was " << fanout << std::endl;
-  std::cout << "node " << nodeIndex << "'s neighborNode size is " << neighborList.at(nodeIndex).neighborNodes.size() << std::endl;
-  std::cout << "fanout is " << std::min(fanout, (int)neighborList.at(nodeIndex).neighborNodes.size()) << std::endl;
-  return std::min(fanout, (int)neighborList.at(nodeIndex).neighborNodes.size());
-}
-
-int
-updateFanout (EnergySourceContainer sources, std::vector<neighbors> neighborList, int nodeIndex) {
-  Ptr<BasicEnergySource> energySource = DynamicCast<BasicEnergySource> (sources.Get(nodeIndex));
-  std::cout << "energy fraction of node " << nodeIndex << " is " << energySource->GetEnergyFraction() << std::endl;
-  double frac = energySource->GetEnergyFraction();
-  int ret = calFanout (frac, neighborList, nodeIndex);
-  std::cout << "Now the fanout is " << ret << std::endl;
-  return ret;
-}
-
-void
-updateEnergyFraction (EnergySourceContainer sources, uint32_t numNodes) {
-  Simulator::Schedule (Seconds(2), &updateEnergyFraction, sources, numNodes);
-//  std::cout << "energy fraction is " << sources.Get(0)->GetEnergyFraction() << std::endl;
-  
-  for(uint32_t i = 0; i < numNodes; i++) {
-    std::cout << "Energy Fraction of Node " << i << " is " << sources.Get(i)->GetEnergyFraction() << "\n";
-    
-  }
-
-}
-
-Ptr<GossipUdpClient> 
-GetUdpClientApp(Ptr <Node> node)
-{
-  Ptr< Application > udpClientApp = node->GetApplication (1) ;
-  return DynamicCast<GossipUdpClient>(udpClientApp);
-}
-
-Ptr<GossipUdpServer> 
-GetUdpServerApp(Ptr <Node> node)
-{
-  Ptr< Application > udpServerApp = node->GetApplication (1) ;
-  return DynamicCast<GossipUdpServer>(udpServerApp);
-}
+//Ptr<GossipUdpClient> 
+//GetUdpClientApp(Ptr <Node> node)
+//{
+//  Ptr< Application > udpClientApp = node->GetApplication (1) ;
+//  return DynamicCast<GossipUdpClient>(udpClientApp);
+//}
+//
+//Ptr<GossipUdpServer> 
+//GetUdpServerApp(Ptr <Node> node)
+//{
+//  Ptr< Application > udpServerApp = node->GetApplication (1) ;
+//  return DynamicCast<GossipUdpServer>(udpServerApp);
+//}
 
 
 Ptr<GossipGenerator> 
@@ -473,7 +473,6 @@ calBroadcastTime (std::vector<double> txVec, std::vector<double> rxVec) {
 static inline std::string
 PrintID (Ptr<Node> n) {
     uint32_t id = n->GetId();
-
     std::ostringstream oss;
     oss << "ID: " << id;
 
@@ -486,29 +485,36 @@ main (int argc, char *argv[])
 //  NS_LOG_FUNCTION(this);
   std::string sourcePhyMode ("DsssRate11Mbps");
   std::string phyMode ("DsssRate1Mbps");
-  uint32_t packetSize = 1000; // bytes
-  uint32_t numPackets = 5;
-  uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
-//  uint32_t sinkNode = 0;
-//  uint32_t sourceNode = 2;
-  double interval = 30.0; // seconds
   bool verbose = false;
   bool tracing = false;
   double maxRange = 80;
-  std::string transportProt = "Tcp";
-  std::string socketType = "ns3::TcpSocketFactory";
-  double simulationTime = 10000.0; // seconds
+  uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
+  double simulationTime = 50.0; // seconds
+  double initialEnergy = 1080.0; // J  // 500mAh = 5400J  100mAh = 1080J
+  
+  Time GossipInterval = Seconds(1.0); // Must be larger than the round-trip-time! (c.f. LinkDelay)
+  Time SolicitInterval = Seconds(5.0); //not planning on using this attribute
+  Time udpClientStartTime = Seconds(2.0);
+  
+//  uint32_t packetSize = 1000; // bytes
+//  uint32_t numPackets = 5;
+//  uint32_t sinkNode = 0;
+//  uint32_t sourceNode = 2;
+//  double interval = 30.0; // seconds
+//  std::string transportProt = "Tcp";
+//  std::string socketType = "ns3::TcpSocketFactory";
 
   CommandLine cmd;
-  cmd.AddValue("transportProt", "Transport protocol to use:Tcp, Udp", transportProt);
   cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
-  cmd.AddValue ("maxRange", "Maximum Wifi Range", maxRange);
-  cmd.AddValue ("packetSize", "size of application packet sent", packetSize);
-  cmd.AddValue ("numPackets", "number of packets generated", numPackets);
-  cmd.AddValue ("interval", "interval (seconds) between packets", interval);
+  cmd.AddValue ("numNodes", "number of nodes", numNodes);
   cmd.AddValue ("verbose", "turn on all WifiNetDevice log components", verbose);
   cmd.AddValue ("tracing", "turn on ascii and pcap tracing", tracing);
-  cmd.AddValue ("numNodes", "number of nodes", numNodes);
+  cmd.AddValue ("maxRange", "Maximum Wifi Range", maxRange);
+  
+//  cmd.AddValue("transportProt", "Transport protocol to use:Tcp, Udp", transportProt);
+//  cmd.AddValue ("packetSize", "size of application packet sent", packetSize);
+//  cmd.AddValue ("numPackets", "number of packets generated", numPackets);
+//  cmd.AddValue ("interval", "interval (seconds) between packets", interval);
   //cmd.AddValue ("sinkNode", "Receiver node number", sinkNode);
   //cmd.AddValue ("sourceNode", "Sender node number", sourceNode);
 
@@ -520,8 +526,9 @@ main (int argc, char *argv[])
 //  else {
 //    socketType = "ns3::UdpSocketFactory";
 //  }
+  
   // Convert to time object
-  Time interPacketInterval = Seconds (interval);
+//  Time interPacketInterval = Seconds (interval);
 
   // disable fragmentation for frames below 2200 bytes
   Config::SetDefault ("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue ("2200"));
@@ -535,20 +542,8 @@ main (int argc, char *argv[])
   wifiNodes.Create (numNodes);
   
   NodeContainer sourceNodes;
-//  sourceNodes.Add(wifiNodes.Get(0));
-  sourceNodes.Add(wifiNodes);
+  sourceNodes.Add(wifiNodes);   //  sourceNodes.Add(wifiNodes.Get(0));
   sourceNodes.Create(1);
-  
-//  NodeContainer p2pNodes;
-//  p2pNodes.Create(1);
-//  p2pNodes.Add(c.Get(0));
-//  
-//  PointToPointHelper pointToPoint;
-//  pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("10Mbps"));
-//  pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
-//  
-//  NetDeviceContainer p2pDevices;
-//  p2pDevices = pointToPoint.Install(p2pNodes);
   
   // The below set of helpers will help us to put together the wifi NICs we want
   WifiHelper wifi;
@@ -628,7 +623,7 @@ main (int argc, char *argv[])
 
   // install energy source and energy model on all wifi nodes
   BasicEnergySourceHelper basicSourceHelper;
-  basicSourceHelper.Set ("BasicEnergySourceInitialEnergyJ", DoubleValue (1080.0));   // 500mAh = 5400J  100mAh = 1080J
+  basicSourceHelper.Set ("BasicEnergySourceInitialEnergyJ", DoubleValue(initialEnergy));   
   EnergySourceContainer sources = basicSourceHelper.Install (wifiNodes);
   WifiRadioEnergyModelHelper radioEnergyHelper;
   //radioEnergyHelper.Set ("TxCurrentA", DoubleValue (0.0174));
@@ -659,9 +654,6 @@ main (int argc, char *argv[])
 //  }
   
   GossipGeneratorHelper ggh ;
-  Time GossipInterval = Seconds(1.0); // Must be larger than the round-trip-time! (c.f. LinkDelay)
-  Time SolicitInterval = Seconds(2.0); //not planning on using this attribute
-  
   ApplicationContainer nodeApps;   
   nodeApps = ggh.Install(wifiNodes);
   
@@ -681,7 +673,7 @@ main (int argc, char *argv[])
    
   GossipUdpClientHelper client (serverAddress, port);
   ApplicationContainer udpClientApps = client.Install(wifiNodes);
-  udpClientApps.Start (Seconds (2.0));
+  udpClientApps.Start (udpClientStartTime);
   udpClientApps.Stop (Seconds (simulationTime));
   
   for (unsigned int i = 0; i < numNodes; i++) {
@@ -698,11 +690,11 @@ main (int argc, char *argv[])
   
   Ptr<Node> node = sourceNodes.Get(0);
   Ptr<Ipv4> ipv4 = node->GetObject<Ipv4>();
-    Ipv4InterfaceAddress iaddr = ipv4->GetAddress(2,0);
-    Ipv4Address addri = iaddr.GetLocal();
+  Ipv4InterfaceAddress iaddr = ipv4->GetAddress(2,0);
+  Ipv4Address addri = iaddr.GetLocal();
 
 //    std::cout << "Node " << node->GetId() << " is at (" << pos.x << ", " << pos.y << ", " << pos.z << ")\n"; 
-    std::cout << "Node " << node->GetId() << "'s IP address is " << addri << "\n";
+  std::cout << "Node " << node->GetId() << "'s IP address is " << addri << "\n";
 
   std::vector<neighbors> neighborList;
   neighborList = getNeighbors (wifiNodes, maxRange);
@@ -761,23 +753,13 @@ main (int argc, char *argv[])
   Ptr<Gossip> a = GetGossip(sourceNodes.Get(numNodes));
   a->SetSourceNode(sourceNodes);
   a->SetNumberOfNodes(numNodes);
+  
 //  a->SetCurrentValue( 2 );
 
 //  GeneratePackets(a, 1, wifiNodes, sourceNode);
   
 //  a->SetCurrentValue( 2 );
 //  a->SetSequenceNumber(1);
-  
-//  TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
-//  Ptr<Socket> recvSink = Socket::CreateSocket (wifiNodes.Get (sinkNode), tid);  
-//  InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), 80);
-//  recvSink->Bind (local);
-//  recvSink->SetRecvCallback (MakeCallback (&ReceivePacket));
-//
-//  Ptr<Socket> source = Socket::CreateSocket (wifiNodes.Get (sourceNode), tid);
-//  InetSocketAddress remote = InetSocketAddress (ipv4Inter.GetAddress (sinkNode, 0), 80);
-// // source->SetAllowBroadcast (true);
-//  source->Connect (remote);
 
 /** connect trace sources **/
   /***************************************************************************/
@@ -856,7 +838,7 @@ main (int argc, char *argv[])
   
   // When one node's energy source fraction is lower than 0.02, store the time and stop simulation.
   
-  
+  std::cout << "Simulation Stopped!!!\n"; 
   
   NS_LOG_INFO(endl << " ---- Print results ---" << endl);
   int MaxHops = 0;

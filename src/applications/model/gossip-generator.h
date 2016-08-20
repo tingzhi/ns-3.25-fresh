@@ -120,14 +120,14 @@ public:
   /**
    * \brief Accept and process a received Ack.
    */
-  void HandleAck(void);
+//  void HandleAck(void);
 
   /**
    * \brief Accept and process a request message.
    * \param the source address
    * \param the destination address
    */
-  void HandleSolicit(Ipv4Address src,Ipv4Address dest);
+//  void HandleSolicit(Ipv4Address src,Ipv4Address dest);
 
   /**
    * \brief Handle payload
@@ -135,14 +135,13 @@ public:
    * \param the destination address
    * \param the payload
    */
-  void HandlePayload(Ipv4Address src,Ipv4Address dest,uint8_t payload[]);
+//  void HandlePayload(Ipv4Address src,Ipv4Address dest,uint8_t payload[]);
   
 /************************************************************************/
   
-  void GetEnergySource (Ptr<EnergySource> testSrc); 
   unsigned int calFanout (); 
   std::vector<int> ChooseNeighbors ();
-  void PrintSentPkt ();
+//  void PrintSentPkt ();
   // void printEnergyFraction (Ptr<EnergySource> source);
 //  void GetEnergySourceContainer (EnergySourceContainer sources);
   void SetSequenceNumber (uint16_t seq);
@@ -154,19 +153,18 @@ public:
   void HandleSolicit2(Ipv4Address src,Ipv4Address dest);
   void HandlePayload2(Ipv4Address src,Ipv4Address dest, uint8_t payload_in[]);
   void StoreReceivedDataTime (bool newData, Time receivedDataTime);
+  
+  void GetEnergySource (Ptr<EnergySource> val); 
   int GetSentPayload ( void );
   int GetSentSolicit ( void );
   int GetSentAck ( void );
   std::vector<uint16_t> GetRxPktStore (void);
-  
-  void GetUdpClient (Ptr<GossipUdpClient> udpClientApp);
-
-
+  void GetUdpClient (Ptr<GossipUdpClient> val);
   std::vector<double> GetRxDataTime ();
   
-  EnergySourceContainer src;
-  Ptr<EnergySource> energySource;
-  Ptr<EnergySource> srcPtr;
+//  EnergySourceContainer src;
+//  Ptr<EnergySource> energySource;
+  Ptr<EnergySource> energySourcePtr;
   Ptr<GossipUdpClient> udpClient;
   Ptr<UniformRandomVariable> x;
   Ptr<UniformRandomVariable> y; // used for ChooseRandomNeighbor function
@@ -178,7 +176,7 @@ protected:
   uint8_t CurrentValue; //!< The current Value
   uint8_t PacketHops; //!< How many hops the data packet experienced
   
-  bool halt; //!< If the gossip is paused
+//  bool halt; //!< If the gossip is paused
   Time gossip_delta_t; //!< Time between sending data to the other nodes
   Time solicit_delta_t; //!< Time between requests of data from the other nodes
   Time ReceivedData; //!< Time when data was first received
@@ -186,7 +184,7 @@ protected:
   std::vector<Ipv4Address> neighbours[2]; //!< The own addresses and corresponding neighbors of this node
   //Ptr<EnergySource> source;
   uint16_t seqNum;
-  std::vector<uint16_t> sourceNodePktStore;
+//  std::vector<uint16_t> sourceNodePktStore;
   std::vector<uint16_t> rxPktStore;
   bool isNew;
   std::vector<double> rxDataTime;
@@ -218,12 +216,12 @@ private:
   /**
    * \brief Start the GossipProcess
    */
-  void GossipProcess();
+//  void GossipProcess();
 
   /**
    * \brief Start the SolicitProcess
    */
-  void Solicit(void);
+//  void Solicit(void);
 
   /**
    * \brief Start the application.

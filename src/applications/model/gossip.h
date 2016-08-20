@@ -59,13 +59,13 @@ public:
   virtual ~Gossip ();
   
   void SetCurrentValue (int val);
-  int GetSentMessages ( void);
+//  int GetSentMessages ( void);
   int GetPacketHops ( void);
 
 /************************************************************************/
  
-  void PrintSentPkt ();
-  void SetSequenceNumber (uint32_t seq);
+//  void PrintSentPkt ();
+  void SetSequenceNumber (uint16_t val);
   void SendPayload(Ipv4Address src, Ipv4Address dest);
   Ipv4Address GetIpv4 (Ptr<Node> node, uint32_t index);
   std::vector<double> GetSentPktTime (void); 
@@ -86,12 +86,12 @@ public:
 protected:
     
   uint8_t CurrentValue; //!< The current Value
-  int SentMessages; //!< Amount of messages sent out
+//  int SentMessages; //!< Amount of messages sent out
   uint8_t PacketHops; //!< How many hops the data packet experienced
   uint16_t seqNum;
   std::vector<double> sentPktTime;
   
-  std::vector<int> sourceNodePktStore;
+//  std::vector<int> sourceNodePktStore;
   
   /**
    * \brief Dispose method.

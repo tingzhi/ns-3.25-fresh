@@ -79,9 +79,9 @@ public:
    */
   void SetPacketWindowSize (uint16_t size);
   
-  void SetSeqNum (uint32_t seqNum);
+  void SetSeqNum (uint32_t val);
   
-  void SetNumberOfNodes (uint32_t nodeNum);
+  void SetNumberOfNodes (uint32_t val);
   
   std::vector<Ipv4Address> GetStoreAck (void);
   

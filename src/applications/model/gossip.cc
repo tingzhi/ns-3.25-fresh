@@ -41,7 +41,7 @@ Gossip::Gossip ()
   seqNum = 0;
 //  pktNum = 1;
   
-  SentMessages = 0;
+//  SentMessages = 0;
   PacketHops = 0;
 }
 
@@ -64,7 +64,7 @@ Gossip::SendPayload(Ipv4Address src, Ipv4Address dest)
   NS_LOG_INFO("Gossip::SendPayload " << src << " -> " << dest << " Value:" << CurrentValue );
   NS_LOG_INFO(" Time: " << Simulator::Now ().GetSeconds () << "s");
 
-  SentMessages++;
+//  SentMessages++;
   Ipv4Header header = Ipv4Header ();
   header.SetDestination (dest);
   header.SetPayloadSize (0);
@@ -107,23 +107,23 @@ Gossip::SetCurrentValue ( int val )
 }
 
 void
-Gossip::SetSequenceNumber (uint32_t seq)
+Gossip::SetSequenceNumber (uint16_t val)
 {
-  NS_LOG_FUNCTION (this << seq);
-  seqNum = seq;
-  sourceNodePktStore.push_back(seq);
+  NS_LOG_FUNCTION (this << val);
+  seqNum = val;
+//  sourceNodePktStore.push_back(seq);
 //  PrintSentPkt();
 }
 
 // Utility function for debug sourceNodePktStore variable
-void
-Gossip::PrintSentPkt () {
-  std::cout << "Print sourceNodePktStore ..." << std::endl;
-  for (unsigned int i = 0; i < sourceNodePktStore.size(); i++) {
-    std::cout << sourceNodePktStore[i] << " " ;
-  }
-  std::cout << std::endl;
-}
+//void
+//Gossip::PrintSentPkt () {
+//  std::cout << "Print sourceNodePktStore ..." << std::endl;
+//  for (unsigned int i = 0; i < sourceNodePktStore.size(); i++) {
+//    std::cout << sourceNodePktStore[i] << " " ;
+//  }
+//  std::cout << std::endl;
+//}
 
 std::vector<double>
 Gossip::GetSentPktTime (void) 
@@ -139,12 +139,12 @@ Gossip::GetPacketHops ( void )
   return PacketHops;
 }
 
-int
-Gossip::GetSentMessages ( void )
-{
-  NS_LOG_FUNCTION (this);
-  return SentMessages;
-}
+//int
+//Gossip::GetSentMessages ( void )
+//{
+//  NS_LOG_FUNCTION (this);
+//  return SentMessages;
+//}
 
 void 
 Gossip::SetSourceNode (NodeContainer c) {
@@ -185,7 +185,7 @@ Gossip::GeneratePackets (void)
 
   // pass # of nodes, sequence number info to udp server
   udpServer->SetNumberOfNodes(numOfNodes);
-  udpServer->SetSeqNum(seqNum);
+  udpServer->SetSeqNum((uint32_t)seqNum);
 
   std::cout << "GeneratePackets Function! seqtNum " <<  seqNum << std::endl;
   SendPayload(srcAddr, destAddr);

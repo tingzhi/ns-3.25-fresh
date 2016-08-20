@@ -72,7 +72,7 @@ public:
    */
   void SetRemote (Address ip, uint16_t port);
   
-  void SetSeqNum (uint16_t seqNum);
+  void SetSeqNum (uint32_t val);
   
   void Send (void);
 
@@ -93,7 +93,7 @@ private:
 //  Time m_interval; //!< Packet inter-send time
   uint32_t m_size; //!< Size of the sent packet (including the SeqTsHeader)
 
-  uint16_t m_sent; //!< Counter for sent packets
+  uint32_t m_sent; //!< Counter for sent packets
   Ptr<Socket> m_socket; //!< Socket
   Address m_peerAddress; //!< Remote peer address
   uint16_t m_peerPort; //!< Remote peer port
