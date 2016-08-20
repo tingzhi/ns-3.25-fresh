@@ -38,7 +38,7 @@ Gossip::Gossip ()
   NS_LOG_FUNCTION (this);
   
   CurrentValue = 2;  
-  seqNum = 0;
+  seqNum = 1;  // start at 1
 //  pktNum = 1;
   
 //  SentMessages = 0;
