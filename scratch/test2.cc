@@ -237,10 +237,11 @@ GeneratePackets (Ptr<Gossip> gossip, uint32_t pktNum, NodeContainer wifiNodes, N
   
   Ipv4Address srcAddr, destAddr;
   srcAddr = GetIpv4(sourceNode.Get(1), 1);
-  destAddr = GetIpv4(wifiNodes.Get(0), 2);
+//  destAddr = GetIpv4(wifiNodes.Get(0), 2);
+  destAddr = GetIpv4(sourceNode.Get(0), 2);
   
-//  std::cout << "srcAddr " << srcAddr << std::endl;
-//  std::cout << "destAddr " << destAddr << std::endl;
+  std::cout << "srcAddr " << srcAddr << std::endl;
+  std::cout << "destAddr " << destAddr << std::endl;
   
   gossip->SendPayload(srcAddr, destAddr);
   cout << "GeneratePackets Function! pktNum " <<  pktNum << endl;
@@ -254,7 +255,7 @@ RemainingEnergy (std::string context, double oldValue, double remainingEnergy)
 {
 //  NS_LOG_UNCOND ("Context:" << context << " --- " << Simulator::Now ().GetSeconds ()
 //                 << "s Current remaining energy = " << remainingEnergy << "J");
-  if (remainingEnergy <= 150) {
+  if (remainingEnergy <= 10) {
     NS_LOG_UNCOND ("Context:" << context << " --- " << Simulator::Now ().GetSeconds ()
                  << "s Current remaining energy = " << remainingEnergy << "J");
     Simulator::Stop();
@@ -387,6 +388,21 @@ updateEnergyFraction (EnergySourceContainer sources, uint32_t numNodes) {
 
 }
 
+Ptr<GossipUdpClient> 
+GetUdpClientApp(Ptr <Node> node)
+{
+  Ptr< Application > udpClientApp = node->GetApplication (1) ;
+  return DynamicCast<GossipUdpClient>(udpClientApp);
+}
+
+Ptr<GossipUdpServer> 
+GetUdpServerApp(Ptr <Node> node)
+{
+  Ptr< Application > udpServerApp = node->GetApplication (1) ;
+  return DynamicCast<GossipUdpServer>(udpServerApp);
+}
+
+
 Ptr<GossipGenerator> 
 GetGossipApp(Ptr <Node> node)
 {
@@ -472,7 +488,7 @@ main (int argc, char *argv[])
   std::string phyMode ("DsssRate1Mbps");
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 5;
-  uint32_t numNodes = 40;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
+  uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
 //  uint32_t sinkNode = 0;
 //  uint32_t sourceNode = 2;
   double interval = 30.0; // seconds
@@ -481,7 +497,7 @@ main (int argc, char *argv[])
   double maxRange = 80;
   std::string transportProt = "Tcp";
   std::string socketType = "ns3::TcpSocketFactory";
-  double simulationTime = 5000.0; // seconds
+  double simulationTime = 10000.0; // seconds
 
   CommandLine cmd;
   cmd.AddValue("transportProt", "Transport protocol to use:Tcp, Udp", transportProt);
@@ -519,7 +535,8 @@ main (int argc, char *argv[])
   wifiNodes.Create (numNodes);
   
   NodeContainer sourceNodes;
-  sourceNodes.Add(wifiNodes.Get(0));
+//  sourceNodes.Add(wifiNodes.Get(0));
+  sourceNodes.Add(wifiNodes);
   sourceNodes.Create(1);
   
 //  NodeContainer p2pNodes;
@@ -596,7 +613,7 @@ main (int argc, char *argv[])
                                  "Y", StringValue (ss.str())); 
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (wifiNodes);
-  mobility.Install (sourceNodes.Get(1));
+  mobility.Install (sourceNodes.Get(numNodes)); // numNodes = 10, then 0-9, 10 is the single source node
   
 //  MobilityHelper sourceMobility;
 //  sourceMobility.SetPositionAllocator ("ns3::GridPositionAllocator",
@@ -611,7 +628,7 @@ main (int argc, char *argv[])
 
   // install energy source and energy model on all wifi nodes
   BasicEnergySourceHelper basicSourceHelper;
-  basicSourceHelper.Set ("BasicEnergySourceInitialEnergyJ", DoubleValue (1080.0));   // 500mAh = 5400J  100mAh = 1080J
+  basicSourceHelper.Set ("BasicEnergySourceInitialEnergyJ", DoubleValue (5400.0));   // 500mAh = 5400J  100mAh = 1080J
   EnergySourceContainer sources = basicSourceHelper.Install (wifiNodes);
   WifiRadioEnergyModelHelper radioEnergyHelper;
   //radioEnergyHelper.Set ("TxCurrentA", DoubleValue (0.0174));
@@ -623,7 +640,7 @@ main (int argc, char *argv[])
   // Install Internet stack on every node
   InternetStackHelper stack;
   stack.Install (wifiNodes);
-  stack.Install(sourceNodes.Get(1));
+  stack.Install(sourceNodes.Get(numNodes));
 //  internet.Install(p2pNodes.Get(0));
 
   Ipv4AddressHelper address;
@@ -636,38 +653,6 @@ main (int argc, char *argv[])
   address.SetBase ("10.1.2.0", "255.255.255.0");
   Ipv4InterfaceContainer sourceInter;
   sourceInter = address.Assign (sourceWifiDevice);
-
-  
-//  ipv4.SetBase("10.1.2.0", "255.255.255.0");
-//  Ipv4InterfaceContainer p2pInterfaces;
-//  p2pInterfaces = ipv4.Assign(p2pDevices);
-  
-  // Flow
-//  uint16_t port = 7;
-//  Address localAddress (InetSocketAddress (Ipv4Address::GetAny (), port));
-//  PacketSinkHelper packetSinkHelper (socketType, localAddress);
-//  ApplicationContainer sinkApp = packetSinkHelper.Install (c.Get (4));
-//
-//  sinkApp.Start (Seconds (2.0));
-//  sinkApp.Stop (Seconds (simulationTime + 0.1));
-//
-//  uint32_t payloadSize = 1448;
-//  Config::SetDefault ("ns3::TcpSocket::SegmentSize", UintegerValue (payloadSize));
-//
-//  OnOffHelper onoff (socketType, Ipv4Address::GetAny ());
-//  onoff.SetAttribute ("OnTime",  StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
-//  onoff.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
-//  onoff.SetAttribute ("PacketSize", UintegerValue (payloadSize));
-//  onoff.SetAttribute ("DataRate", StringValue ("10Mbps")); //bit/s
-//  ApplicationContainer apps;
-//
-//  AddressValue remoteAddress (InetSocketAddress (p2pInterfaces.GetAddress (0), port));
-//  onoff.SetAttribute ("Remote", remoteAddress);
-//  apps.Add (onoff.Install (p2pNodes.Get (1)));
-//  apps.Start (Seconds (1.0));
-//  apps.Stop (Seconds (simulationTime + 0.1));
-
-//  Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
   
 //   for (unsigned int i = 0; i < numNodes; i++) {  
 //    std::cout << sources.Get(i)->GetNode()->GetId() << " && " << sources.Get(i)->GetNode()->GetObject<Ipv4>()->GetAddress(1,0).GetLocal() << std::endl;
@@ -675,14 +660,35 @@ main (int argc, char *argv[])
   
   GossipGeneratorHelper ggh ;
   Time GossipInterval = Seconds(1.0); // Must be larger than the round-trip-time! (c.f. LinkDelay)
-  Time SolicitInterval = Seconds(5.0); //not planning on using this attribute
+  Time SolicitInterval = Seconds(2.0); //not planning on using this attribute
   
   ApplicationContainer nodeApps;   
   nodeApps = ggh.Install(wifiNodes);
   
   GossipHelper gh;
   ApplicationContainer app;
-  app = gh.Install(sourceNodes.Get(1));
+  app = gh.Install(sourceNodes.Get(numNodes));
+  
+  Address serverAddress = GetIpv4(sourceNodes.Get(numNodes), 1);
+  uint16_t port = 4000;
+  GossipUdpServerHelper server (port);
+  ApplicationContainer udpServerApps = server.Install (sourceNodes.Get (numNodes));
+  udpServerApps.Start (Seconds (0.0));
+  udpServerApps.Stop (Seconds (simulationTime));
+  
+  Ptr<Application> AppPtr = udpServerApps.Get(0);
+  GetGossip(sourceNodes.Get(numNodes))->SetUdpServer(DynamicCast<GossipUdpServer>(AppPtr));
+   
+  GossipUdpClientHelper client (serverAddress, port);
+  ApplicationContainer udpClientApps = client.Install(wifiNodes);
+  udpClientApps.Start (Seconds (2.0));
+  udpClientApps.Stop (Seconds (simulationTime));
+  
+  for (unsigned int i = 0; i < numNodes; i++) {
+    Ptr<Application> app = udpClientApps.Get(i);
+    GetGossipApp(wifiNodes.Get(i))->GetUdpClient(DynamicCast<GossipUdpClient>(app));
+  }
+  
   
   //GetGossipApp(c.Get(0))->AddNeighbor(i.GetAddress(0), i.GetAddress(1));
 //  GetGossipApp(nodes2.Get(Edge1))->AddNeighbor(InterfaceCont.GetAddress(0),InterfaceCont.GetAddress(1));
@@ -752,7 +758,9 @@ main (int argc, char *argv[])
   }
 
 //  Ptr<GossipGenerator> a = GetGossipApp(wifiNodes.Get(0));
-  Ptr<Gossip> a = GetGossip(sourceNodes.Get(1));
+  Ptr<Gossip> a = GetGossip(sourceNodes.Get(numNodes));
+  a->SetSourceNode(sourceNodes);
+  a->SetNodeNum(numNodes);
 //  a->SetCurrentValue( 2 );
 
 //  GeneratePackets(a, 1, wifiNodes, sourceNode);
@@ -835,7 +843,7 @@ main (int argc, char *argv[])
   //NS_LOG_UNCOND ("Testing from node " << sourceNode << " to " << sinkNode << " with RandomRectanglePositionAllocator 100 by 100");
 
   //Simulator::Stop (Seconds (30.0));
-  Simulator::Schedule (Seconds(1.0), &GeneratePackets, a, 1, wifiNodes, sourceNodes);  
+//  Simulator::Schedule (Seconds(1.0), &GeneratePackets, a, 1, wifiNodes, sourceNodes);  
   
 //  Simulator::Schedule (Seconds(2), &updateEnergyFraction, sources, numNodes);
 

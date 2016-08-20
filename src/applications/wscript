@@ -5,6 +5,8 @@ def build(bld):
     module.source = [
         'model/gossip-generator.cc',
         'model/gossip.cc',
+        'model/gossip-udp-client.cc',
+        'model/gossip-udp-server.cc',
         'model/bulk-send-application.cc',
         'model/onoff-application.cc',
         'model/packet-sink.cc',
@@ -22,6 +24,7 @@ def build(bld):
         'helper/on-off-helper.cc',
         'helper/packet-sink-helper.cc',
         'helper/udp-client-server-helper.cc',
+        'helper/gossip-udp-client-server-helper.cc',
         'helper/udp-echo-helper.cc',
         ]
 
@@ -35,6 +38,8 @@ def build(bld):
     headers.source = [
         'model/gossip-generator.h',
         'model/gossip.h',
+        'model/gossip-udp-client.h',
+        'model/gossip-udp-server.h',
         'model/bulk-send-application.h',
         'model/onoff-application.h',
         'model/packet-sink.h',
@@ -48,6 +53,7 @@ def build(bld):
         'model/application-packet-probe.h',
         'helper/gossip-generator-helper.h',
         'helper/gossip-helper.h',
+        'helper/gossip-udp-client-server-helper.h',
         'helper/bulk-send-helper.h',
         'helper/on-off-helper.h',
         'helper/packet-sink-helper.h',

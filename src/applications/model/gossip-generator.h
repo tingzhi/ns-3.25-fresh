@@ -29,6 +29,7 @@
 #include "ns3/nstime.h"
 #include "ns3/simulator.h"
 #include "ns3/energy-module.h"
+#include "ns3/gossip-udp-client.h"
 
 namespace ns3 {
   const uint8_t TYPE_SOLICIT = 21; //!< constant used to indicate type of msg
@@ -156,6 +157,8 @@ public:
   int GetSentSolicit ( void );
   int GetSentAck ( void );
   std::vector<int> GetRxPktStore (void);
+  
+  void GetUdpClient (Ptr<GossipUdpClient> udpClientApp);
 
 
   std::vector<double> GetRxDataTime ();
@@ -163,6 +166,7 @@ public:
   EnergySourceContainer src;
   Ptr<EnergySource> energySource;
   Ptr<EnergySource> srcPtr;
+  Ptr<GossipUdpClient> udpClient;
   Ptr<UniformRandomVariable> x;
   Ptr<UniformRandomVariable> y; // used for ChooseRandomNeighbor function
   

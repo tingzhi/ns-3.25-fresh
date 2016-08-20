@@ -28,6 +28,7 @@
 #include "ns3/internet-module.h"
 #include "ns3/nstime.h"
 #include "ns3/simulator.h"
+#include "ns3/gossip-udp-server.h"
 //#include "ns3/energy-module.h"
 
 namespace ns3 {
@@ -160,14 +161,24 @@ public:
    */
   void SendPayload(Ipv4Address src, Ipv4Address dest);
   
+  Ipv4Address GetIpv4 (Ptr<Node> node, uint32_t index);
   
 //  EnergySourceContainer src;
 //  Ptr<EnergySource> energySource;
 //  Ptr<EnergySource> srcPtr;
 //  Ptr<UniformRandomVariable> x;
 //  Ptr<UniformRandomVariable> y; // used for ChooseRandomNeighbor function
+  NodeContainer m_sourceNodes;
+  uint32_t nodeNum;
+  Ptr<GossipUdpServer> udpServer;
   
   std::vector<double> GetSentPktTime (void); 
+  void SetNodeNum (uint32_t val);
+  
+  void GeneratePackets (uint32_t pktNum, NodeContainer sourceNode);
+  void SetSourceNode (NodeContainer c);
+  void SetUdpServer (Ptr<GossipUdpServer> val);
+
   
   
 /************************************************************************/

@@ -96,6 +96,11 @@ GossipGenerator::GetEnergySource (Ptr<EnergySource> testSrc)
 //  std::cout << "Energy fraction of node " << this->GetNode()->GetId() << " is " << srcPtr->GetEnergyFraction() << "!!!!!!!" << std::endl;  
  }
 
+void
+GossipGenerator::GetUdpClient (Ptr<GossipUdpClient> udpClientApp) {
+  udpClient = udpClientApp;
+}
+
 unsigned int 
 GossipGenerator::calFanout () {
   unsigned int fanout = 5;
@@ -221,7 +226,9 @@ GossipGenerator::HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload
       ReceivedData = Simulator::Now ();
       seqNum = seq;
       StoreReceivedDataTime(isNew, ReceivedData);
-
+      
+      udpClient->SetSeqNum(seqNum);
+      udpClient->Send();
     }
     else {
       isNew = false;
@@ -241,7 +248,9 @@ GossipGenerator::HandlePayload2(Ipv4Address src,Ipv4Address dest,uint8_t payload
         ReceivedData = Simulator::Now ();
         seqNum = seq;
         StoreReceivedDataTime(isNew, ReceivedData);
-
+        
+        udpClient->SetSeqNum(seqNum);
+        udpClient->Send();
       }
       else {
         isNew = false;

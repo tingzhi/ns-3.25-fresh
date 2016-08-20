@@ -149,6 +149,63 @@ Gossip::GetSentMessages ( void )
   return SentMessages;
 }
 
+void 
+Gossip::SetSourceNode (NodeContainer c) {
+  NS_LOG_FUNCTION (this);
+  m_sourceNodes = c;
+}
+
+void 
+Gossip::SetNodeNum (uint32_t val) {
+  NS_LOG_FUNCTION (this);
+  nodeNum = val;
+}
+
+void
+Gossip::SetUdpServer (Ptr<GossipUdpServer> val) {
+  udpServer = val;
+}
+
+Ipv4Address
+Gossip::GetIpv4 (Ptr<Node> node, uint32_t index) {
+  Ptr<Ipv4> ipv4 = node->GetObject<Ipv4> (); // Get Ipv4 instance of the node
+  Ipv4Address addr = ipv4->GetAddress (index, 0).GetLocal (); // Get Ipv4InterfaceAddress of xth interface.
+  
+  return addr;
+}
+
+void
+Gossip::GeneratePackets (uint32_t pktNum, NodeContainer sourceNode) 
+{ 
+  NS_LOG_FUNCTION (this);
+  Simulator::Schedule (Seconds(1.0), &Gossip::GeneratePackets, this, pktNum+1, sourceNode);
+  
+  bool flag = udpServer->GetBroadcastStatus();
+
+  if (flag == true) {
+    SetCurrentValue( 2 );
+    SetSequenceNumber(pktNum);
+
+    // pass # of nodes, sequence number info to udp server
+    udpServer->SetNumberOfNodes(nodeNum);
+    udpServer->SetSeqNum(pktNum);
+
+    Ipv4Address srcAddr, destAddr;
+    srcAddr = GetIpv4(sourceNode.Get(nodeNum), 1);
+  //  destAddr = GetIpv4(wifiNodes.Get(0), 2);
+    destAddr = GetIpv4(sourceNode.Get(0), 2);
+
+    std::cout << "srcAddr " << srcAddr << std::endl;
+    std::cout << "destAddr " << destAddr << std::endl;
+
+    SendPayload(srcAddr, destAddr);
+    std::cout << "GeneratePackets Function! pktNum " <<  pktNum << std::endl;
+  }
+  else {
+    // Do nothing...
+  }
+}
+
 void
 Gossip::StartApplication ( void )
 {
@@ -156,6 +213,7 @@ Gossip::StartApplication ( void )
 
 //  Simulator::Schedule (gossip_delta_t, &GossipGenerator::GossipProcess2, this);
 //  Simulator::Schedule (solicit_delta_t, &GossipGenerator::Solicit2, this);
+  Simulator::Schedule(Seconds(3.0), &Gossip::GeneratePackets, this, 1, m_sourceNodes);
 }
 
 void
