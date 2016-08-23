@@ -88,6 +88,11 @@ public:
   void CheckBroadcastStatus (void);
   
   bool GetBroadcastStatus (void);
+  
+  bool IsUnique (void);
+  
+  void CheckBroadcastStatus2 (void);
+
 
 
 protected:

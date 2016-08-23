@@ -187,7 +187,7 @@ Gossip::GeneratePackets (void)
   udpServer->SetNumberOfNodes(numOfNodes);
   udpServer->SetSeqNum((uint32_t)seqNum);
 
-  std::cout << "GeneratePackets Function! seqtNum " <<  seqNum << std::endl;
+  std::cout << "At time " << Simulator::Now().GetSeconds() << "s " << "GeneratePackets Function! seqtNum " <<  seqNum << std::endl;
   SendPayload(srcAddr, destAddr);
   seqNum++;
 }

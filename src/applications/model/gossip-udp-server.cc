@@ -70,7 +70,7 @@ GossipUdpServer::GossipUdpServer ()
   m_received=0;
   m_SequenceNumber = 0;
   m_NodeNumber = 0;
-  m_broadcastStatus = true;
+  m_broadcastStatus = false;
 }
 
 GossipUdpServer::~GossipUdpServer ()
@@ -113,47 +113,7 @@ GossipUdpServer::DoDispose (void)
   Application::DoDispose ();
 }
 
-void
-GossipUdpServer::StartApplication (void)
-{
-  NS_LOG_FUNCTION (this);
 
-  if (m_socket == 0)
-    {
-      TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
-      m_socket = Socket::CreateSocket (GetNode (), tid);
-      InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (),
-                                                   m_port);
-      m_socket->Bind (local);
-    }
-
-  m_socket->SetRecvCallback (MakeCallback (&GossipUdpServer::HandleRead, this));
-
-  if (m_socket6 == 0)
-    {
-      TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
-      m_socket6 = Socket::CreateSocket (GetNode (), tid);
-      Inet6SocketAddress local = Inet6SocketAddress (Ipv6Address::GetAny (),
-                                                   m_port);
-      m_socket6->Bind (local);
-    }
-
-  m_socket6->SetRecvCallback (MakeCallback (&GossipUdpServer::HandleRead, this));
-  
-  Simulator::Schedule(Seconds(4.5), &GossipUdpServer::CheckBroadcastStatus, this);
-
-}
-
-void
-GossipUdpServer::StopApplication ()
-{
-  NS_LOG_FUNCTION (this);
-
-  if (m_socket != 0)
-    {
-      m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
-    }
-}
 
 void
 GossipUdpServer::HandleRead (Ptr<Socket> socket)
@@ -170,8 +130,8 @@ GossipUdpServer::HandleRead (Ptr<Socket> socket)
       uint32_t currentSequenceNumber = seqTs.GetSeq ();
           
       if (currentSequenceNumber == m_SequenceNumber) {
-        std::cout << "Received Sequence Number is " << currentSequenceNumber << "\n";
-        std::cout << "Internal Sequence Number is " << m_SequenceNumber << "\n";
+//        std::cout << "Received Sequence Number is " << currentSequenceNumber << "\n";
+//        std::cout << "Internal Sequence Number is " << m_SequenceNumber << "\n";
         if (InetSocketAddress::IsMatchingType (from))
         {
           NS_LOG_INFO ("TraceDelay: RX " << packet->GetSize () <<
@@ -246,7 +206,82 @@ GossipUdpServer::CheckBroadcastStatus (void) {
     m_broadcastStatus = false;
   }
   Simulator::Schedule (Seconds(0.5), &GossipUdpServer::CheckBroadcastStatus, this);
+}
 
+
+// This one is actually being used.
+void
+GossipUdpServer::CheckBroadcastStatus2 (void) {
+  if ((m_StoreAck.size() == m_NodeNumber) && (IsUnique() == true)) {
+    m_broadcastStatus = true;
+    std::cout << "Ack vector content is: ";
+    for (uint32_t i = 0; i < m_StoreAck.size(); i++) {
+      std::cout << m_StoreAck[i] << " | ";
+    }
+    std::cout << "\n";
+    m_StoreAck.clear();
+  } 
+  else{
+    m_broadcastStatus = false;
+  }
+  Simulator::Schedule (Seconds(0.5), &GossipUdpServer::CheckBroadcastStatus2, this);
+}
+
+bool
+GossipUdpServer::IsUnique (void) {
+  for (uint32_t i = 0; i < m_StoreAck.size(); i++) {
+    for(uint32_t j = i+1; j < m_StoreAck.size(); j++){
+      if(m_StoreAck[i] == m_StoreAck[j]){
+        return false;
+      }
+      else {
+        // Do nothing...
+      }
+    }
+  }
+  return true;
+}
+
+void
+GossipUdpServer::StartApplication (void)
+{
+  NS_LOG_FUNCTION (this);
+
+  if (m_socket == 0)
+    {
+      TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
+      m_socket = Socket::CreateSocket (GetNode (), tid);
+      InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (),
+                                                   m_port);
+      m_socket->Bind (local);
+    }
+
+  m_socket->SetRecvCallback (MakeCallback (&GossipUdpServer::HandleRead, this));
+
+  if (m_socket6 == 0)
+    {
+      TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
+      m_socket6 = Socket::CreateSocket (GetNode (), tid);
+      Inet6SocketAddress local = Inet6SocketAddress (Ipv6Address::GetAny (),
+                                                   m_port);
+      m_socket6->Bind (local);
+    }
+
+  m_socket6->SetRecvCallback (MakeCallback (&GossipUdpServer::HandleRead, this));
+  
+  Simulator::Schedule(Seconds(4.5), &GossipUdpServer::CheckBroadcastStatus2, this);
+
+}
+
+void
+GossipUdpServer::StopApplication ()
+{
+  NS_LOG_FUNCTION (this);
+
+  if (m_socket != 0)
+    {
+      m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+    }
 }
 
 } // Namespace ns3

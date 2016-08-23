@@ -464,8 +464,14 @@ calBroadcastTime (std::vector<double> txVec, std::vector<double> rxVec) {
     }
   }
   else {
-    std::cout << "sendPktTime and rxDataTime vectors are not in same size." << std::endl;
-    std::cout << "rxDataTime vector size is " << rxVec.size() << std::endl;
+    std::cout << "sendPktTime and rxDataTime vectors are NOT in same size." << std::endl;
+    std::cout << "Will pick the smaller size to compute." << std::endl;
+    std::cout << "rxDataTime size: " << rxVec.size() << " sendPktTime size: " << txVec.size() << std::endl;
+    
+    for (uint32_t i = 0; i < rxVec.size(); i++){
+      double diff = rxVec[i] - txVec[i];
+      broadcastTime.push_back(diff);
+    }
   }
   return broadcastTime;
 }
@@ -479,6 +485,19 @@ PrintID (Ptr<Node> n) {
     return oss.str ();
 }
 
+
+/* 
+  function converts std::string types into char * types
+  @param string
+  @return char *
+*/
+char* convertStrToChar(std::string str){
+  char *newChars = new char[str.size()+1];
+  newChars[str.size()]='\0';
+  memcpy(newChars,str.c_str(),str.size());
+  return newChars;
+}
+
 int 
 main (int argc, char *argv[])
 {
@@ -487,9 +506,9 @@ main (int argc, char *argv[])
   std::string phyMode ("DsssRate1Mbps");
   bool verbose = false;
   bool tracing = false;
-  double maxRange = 80;
+  double maxRange = 50;
   uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
-  double simulationTime = 50.0; // seconds
+  double simulationTime = 10000.0; // seconds
   double initialEnergy = 1080.0; // J  // 500mAh = 5400J  100mAh = 1080J
   
   Time GossipInterval = Seconds(1.0); // Must be larger than the round-trip-time! (c.f. LinkDelay)
@@ -503,6 +522,8 @@ main (int argc, char *argv[])
 //  double interval = 30.0; // seconds
 //  std::string transportProt = "Tcp";
 //  std::string socketType = "ns3::TcpSocketFactory";
+  
+  std::string outBrTimeFile = "brTime.txt";
 
   CommandLine cmd;
   cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
@@ -510,6 +531,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("verbose", "turn on all WifiNetDevice log components", verbose);
   cmd.AddValue ("tracing", "turn on ascii and pcap tracing", tracing);
   cmd.AddValue ("maxRange", "Maximum Wifi Range", maxRange);
+  cmd.AddValue("outBrTimeFile", "Filename that broadcast time are written out to", outBrTimeFile);
   
 //  cmd.AddValue("transportProt", "Transport protocol to use:Tcp, Udp", transportProt);
 //  cmd.AddValue ("packetSize", "size of application packet sent", packetSize);
@@ -900,20 +922,33 @@ main (int argc, char *argv[])
 //    std::cout << "\n";
   }
   
-  std::vector<double> broadcastTime;
-  Ptr<GossipGenerator> gossipApp = GetGossipApp(wifiNodes.Get(0));
-  std::vector<double> rxDataTime = gossipApp->GetRxDataTime();
-  
-  broadcastTime = calBroadcastTime(sentPktTime, rxDataTime);
-  
-  std::cout << "For Node 0, the broadcast time is \n";
-  PrintDoubleVector(broadcastTime);
-  std::cout << "\n";
+//  std::vector<double> broadcastTime;
+//  Ptr<GossipGenerator> gossipApp = GetGossipApp(wifiNodes.Get(0));
+//  std::vector<double> rxDataTime = gossipApp->GetRxDataTime();
+//  
+//  broadcastTime = calBroadcastTime(sentPktTime, rxDataTime);
+//  
+//  std::cout << "For Node 0, the broadcast time is \n";
+//  PrintDoubleVector(broadcastTime);
+//  std::cout << "\n";
   
   
   std::vector<double> brTime;
   
-  for (uint32_t i = 0; i < sentPktTime.size(); i++) {
+  // find out the smallest rxDataTime vector size
+  uint32_t minSize;
+  Ptr<GossipGenerator> gossipApp = GetGossipApp(wifiNodes.Get(0));
+  std::vector<double> rxDataTime = gossipApp->GetRxDataTime();
+  minSize = rxDataTime.size();
+  
+  for(uint32_t i = 1; i < numNodes; i++) {
+    Ptr<GossipGenerator> gossipApp = GetGossipApp(wifiNodes.Get(i));
+    std::vector<double> rxDataTime = gossipApp->GetRxDataTime();
+    minSize = std::min<uint32_t>(minSize, rxDataTime.size()); 
+  }
+  
+  
+  for (uint32_t i = 0; i < minSize; i++) {
     double maxTime = 0.0;
     for (uint32_t k = 0; k < numNodes; k++) {
       Ptr<GossipGenerator> gossipApp = GetGossipApp(wifiNodes.Get(k));
@@ -924,6 +959,32 @@ main (int argc, char *argv[])
     }
     brTime.push_back(maxTime);
   }
+  
+  char *newTimeFile = convertStrToChar(outBrTimeFile);
+  
+  FILE *brTimeFile;
+  brTimeFile = fopen(newTimeFile, "a+");
+
+  if (brTimeFile != NULL){
+    for (uint32_t i = 0; i < brTime.size(); i++){
+      fprintf(brTimeFile,"%f\n", brTime[i]);
+    }  
+  }
+  fclose(brTimeFile);
+
+//  ofstream myfile ("brTime.txt");
+//  if(myfile.is_open() == true) {
+//    for (uint32_t i = 0; i < brTime.size(); i++){
+//      myfile << (i+1) << " " << brTime[i] << "\n";
+//    }
+////    myfile << "Writing this to a file.\n";
+////    myfile << "Writing another line to this file.\n";
+//    myfile.close();
+//  }
+//  else {
+//    std::cout << "Unable to open file!";
+//  }
+  
   
   std::cout << "The broadcast time for each data packet are: \n";
   std::cout << "size of the vector is " << brTime.size() << "\n";
@@ -937,20 +998,20 @@ main (int argc, char *argv[])
     
     int sentMsg = gossipApp2->GetSentMessages();
     int sentPayload = gossipApp2->GetSentPayload();
-    int sentAck = gossipApp2->GetSentAck();
-    int sentSolicit = gossipApp2->GetSentSolicit();
+//    int sentAck = gossipApp2->GetSentAck();
+//    int sentSolicit = gossipApp2->GetSentSolicit();
     
-    std::cout << "For Node " << i << std::endl;
-    std::cout << "The sent acks are " << sentAck << std::endl;
-    std::cout << "The sent solicits are " << sentSolicit << std::endl;
-    std::cout << "The sent msgs are " << sentMsg << std::endl;
-
-    std::cout << "The sent payload are " << sentPayload << std::endl;
+//    std::cout << "For Node " << i << std::endl;
+//    std::cout << "The sent acks are " << sentAck << std::endl;
+//    std::cout << "The sent solicits are " << sentSolicit << std::endl;
+//    std::cout << "The sent msgs are " << sentMsg << std::endl;
+//
+//    std::cout << "The sent payload are " << sentPayload << std::endl;
 
     double overhead = (double)sentMsg/(sentPayload + sentMsg);
     protocolOverhead.push_back(overhead);
     
-    std::cout << "The overhead for Wifi Node " << i << " is " << overhead << std::endl;
+//    std::cout << "The overhead for Wifi Node " << i << " is " << overhead << std::endl;
   }
   
   std::cout << "The protocol overhead for each node is " << std::endl;
