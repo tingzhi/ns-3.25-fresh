@@ -255,9 +255,11 @@ RemainingEnergy (std::string context, double oldValue, double remainingEnergy)
 {
 //  NS_LOG_UNCOND ("Context:" << context << " --- " << Simulator::Now ().GetSeconds ()
 //                 << "s Current remaining energy = " << remainingEnergy << "J");
-  if (remainingEnergy <= 10) {
+  if (remainingEnergy <= 107) {
     NS_LOG_UNCOND ("Context:" << context << " --- " << Simulator::Now ().GetSeconds ()
                  << "s Current remaining energy = " << remainingEnergy << "J");
+//    std::cout << "Stopped simulation at " << Simulator::Now().GetSeconds() << std::endl;
+    
     Simulator::Stop();
   }
   else {
@@ -464,9 +466,9 @@ calBroadcastTime (std::vector<double> txVec, std::vector<double> rxVec) {
     }
   }
   else {
-    std::cout << "sendPktTime and rxDataTime vectors are NOT in same size." << std::endl;
-    std::cout << "Will pick the smaller size to compute." << std::endl;
-    std::cout << "rxDataTime size: " << rxVec.size() << " sendPktTime size: " << txVec.size() << std::endl;
+//    std::cout << "sendPktTime and rxDataTime vectors are NOT in same size." << std::endl;
+//    std::cout << "Will pick the smaller size to compute." << std::endl;
+//    std::cout << "rxDataTime size: " << rxVec.size() << " sendPktTime size: " << txVec.size() << std::endl;
     
     for (uint32_t i = 0; i < rxVec.size(); i++){
       double diff = rxVec[i] - txVec[i];
@@ -524,6 +526,11 @@ main (int argc, char *argv[])
 //  std::string socketType = "ns3::TcpSocketFactory";
   
   std::string outBrTimeFile = "brTime.txt";
+  std::string outLifeSpanFile = "lifeSpan.txt";
+  std::string outOverheadFile = "overhead.txt";
+  std::string outConsumedEnergyFile = "consumedEnergy.txt";
+  
+  
 
   CommandLine cmd;
   cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
@@ -532,7 +539,10 @@ main (int argc, char *argv[])
   cmd.AddValue ("tracing", "turn on ascii and pcap tracing", tracing);
   cmd.AddValue ("maxRange", "Maximum Wifi Range", maxRange);
   cmd.AddValue("outBrTimeFile", "Filename that broadcast time are written out to", outBrTimeFile);
-  
+  cmd.AddValue("outLifeSpanFile", "Filename that simulation stop time are written out to", outLifeSpanFile);
+  cmd.AddValue("outOverheadFile", "Filename that total overhead are written out to", outOverheadFile);
+  cmd.AddValue("outConsumedEnergyFile", "Filename that total consumed energy are written out to", outConsumedEnergyFile);
+
 //  cmd.AddValue("transportProt", "Transport protocol to use:Tcp, Udp", transportProt);
 //  cmd.AddValue ("packetSize", "size of application packet sent", packetSize);
 //  cmd.AddValue ("numPackets", "number of packets generated", numPackets);
@@ -654,6 +664,7 @@ main (int argc, char *argv[])
   //Ptr<BasicEnergySource> energySource = DynamicCast<BasicEnergySource> (sources.Get(0));
   //std::cout << "energy fraction is " << energySource->GetEnergyFraction() << std::endl;
   
+  
   // Install Internet stack on every node
   InternetStackHelper stack;
   stack.Install (wifiNodes);
@@ -710,13 +721,13 @@ main (int argc, char *argv[])
   PrintNodePositionAndAddress (wifiNodes);
 //  PrintNodePositionAndAddress (sourceNodes);
   
-  Ptr<Node> node = sourceNodes.Get(0);
-  Ptr<Ipv4> ipv4 = node->GetObject<Ipv4>();
-  Ipv4InterfaceAddress iaddr = ipv4->GetAddress(2,0);
-  Ipv4Address addri = iaddr.GetLocal();
+//  Ptr<Node> node = sourceNodes.Get(0);
+//  Ptr<Ipv4> ipv4 = node->GetObject<Ipv4>();
+//  Ipv4InterfaceAddress iaddr = ipv4->GetAddress(2,0);
+//  Ipv4Address addri = iaddr.GetLocal();
 
 //    std::cout << "Node " << node->GetId() << " is at (" << pos.x << ", " << pos.y << ", " << pos.z << ")\n"; 
-  std::cout << "Node " << node->GetId() << "'s IP address is " << addri << "\n";
+//  std::cout << "Node " << node->GetId() << "'s IP address is " << addri << "\n";
 
   std::vector<neighbors> neighborList;
   neighborList = getNeighbors (wifiNodes, maxRange);
@@ -858,9 +869,24 @@ main (int argc, char *argv[])
   Simulator::Stop(Seconds (simulationTime + 0.1));
   Simulator::Run ();
   
+  double stopTime = Simulator::Now().GetSeconds();
+  
   // When one node's energy source fraction is lower than 0.02, store the time and stop simulation.
   
-  std::cout << "Simulation Stopped!!!\n"; 
+//  std::cout << "Simulation Stopped!!!\n"; 
+//  std::cout << "Stop time is " << stopTime << "\n";
+  
+    //  outLifeSpanFile
+  char *newLifeSpanFile = convertStrToChar(outLifeSpanFile);
+  
+  FILE *lifeSpanFile;
+  lifeSpanFile = fopen(newLifeSpanFile, "a+");
+
+  if (lifeSpanFile != NULL){
+    fprintf(lifeSpanFile,"%f\n", stopTime);  
+  }
+  fclose(lifeSpanFile);
+  
   
   NS_LOG_INFO(endl << " ---- Print results ---" << endl);
   int MaxHops = 0;
@@ -892,9 +918,9 @@ main (int argc, char *argv[])
   std::vector<double> sentPktTime;
   sentPktTime = a->GetSentPktTime();
   
-  std::cout << "For source node, the sending time is \n";
-  PrintDoubleVector(sentPktTime);
-  std::cout << "\n";
+//  std::cout << "For source node, the sending time is \n";
+//  PrintDoubleVector(sentPktTime);
+//  std::cout << "\n";
   
   for (uint32_t i = 0; i < numNodes; i++) 
   {
@@ -905,18 +931,18 @@ main (int argc, char *argv[])
     
     std::vector<uint16_t> rxPktStore;
     rxPktStore = gossipApp->GetRxPktStore();
-    std::cout << "For Wifi Node " << i << ", the receiving pkts are \n";
-    for(uint32_t j = 0; j < rxPktStore.size(); j++) {
-      std::cout << rxPktStore[j] << " ";
-    }
-    std::cout << "\n";
+//    std::cout << "For Wifi Node " << i << ", the receiving pkts are \n";
+//    for(uint32_t j = 0; j < rxPktStore.size(); j++) {
+//      std::cout << rxPktStore[j] << " ";
+//    }
+//    std::cout << "\n";
     
     
     broadcastTime = calBroadcastTime(sentPktTime, rxDataTime);
     
-    std::cout << "For Wifi Node " << i << ", the receiving time is \n";
-    PrintDoubleVector(broadcastTime);
-    std::cout << "\n";
+//    std::cout << "For Wifi Node " << i << ", the receiving time is \n";
+//    PrintDoubleVector(broadcastTime);
+//    std::cout << "\n";
 //    std::cout << "For Wifi Node " << i << ", the receiving time is \n";
 //    PrintDoubleVector(rxDataTime);
 //    std::cout << "\n";
@@ -986,17 +1012,21 @@ main (int argc, char *argv[])
 //  }
   
   
-  std::cout << "The broadcast time for each data packet are: \n";
-  std::cout << "size of the vector is " << brTime.size() << "\n";
-  PrintDoubleVector(brTime);
-  std::cout << "\n";
+
   
-  std::vector<double> protocolOverhead;
+  
+//  std::cout << "The broadcast time for each data packet are: \n";
+//  std::cout << "size of the vector is " << brTime.size() << "\n";
+//  PrintDoubleVector(brTime);
+//  std::cout << "\n";
+  
+//  std::vector<int> protocolOverhead;
+  double totalOverhead = 0.0;
   
   for (uint32_t i = 0; i < numNodes; i++){
     Ptr<GossipGenerator> gossipApp2 = GetGossipApp(wifiNodes.Get(i));
     
-    int sentMsg = gossipApp2->GetSentMessages();
+    int sentMsg = gossipApp2->GetSentMessages();  // ack + solicit
     int sentPayload = gossipApp2->GetSentPayload();
 //    int sentAck = gossipApp2->GetSentAck();
 //    int sentSolicit = gossipApp2->GetSentSolicit();
@@ -1007,24 +1037,87 @@ main (int argc, char *argv[])
 //    std::cout << "The sent msgs are " << sentMsg << std::endl;
 //
 //    std::cout << "The sent payload are " << sentPayload << std::endl;
-
-    double overhead = (double)sentMsg/(sentPayload + sentMsg);
-    protocolOverhead.push_back(overhead);
+//    std::cout << "sentMsg " << sentMsg << std::endl;
+//    std::cout << "sentPayload " << sentPayload << std::endl;
+    
+    std::vector<double> rxDataTime = gossipApp2->GetRxDataTime();
+    uint32_t rxPktNum = rxDataTime.size();
+    double overhead = (sentMsg + sentPayload) / (double)rxPktNum;
+//    std::cout << "overhead " << overhead << std::endl;
+    
+    totalOverhead = totalOverhead + overhead;
+    //double overhead = (double)sentMsg/(sentPayload + sentMsg);
+//    protocolOverhead.push_back(overhead);
     
 //    std::cout << "The overhead for Wifi Node " << i << " is " << overhead << std::endl;
   }
+  double avgOverhead = totalOverhead / (double)numNodes;
   
-  std::cout << "The protocol overhead for each node is " << std::endl;
-  PrintDoubleVector(protocolOverhead);
-  std::cout << "\n";
   
-  std::cout << "The average protocol overhead is " << std::endl;
-  double temp = 0;
-  for (uint32_t i = 0; i < protocolOverhead.size(); i++) {
-    temp = temp + protocolOverhead[i];
+//  std::cout << "The protocol overhead for each node is " << std::endl;
+//  PrintDoubleVector(protocolOverhead);
+//  std::cout << "\n";
+  
+//  std::cout << "The average protocol overhead is " << std::endl;
+//  double temp = 0;
+//  for (uint32_t i = 0; i < protocolOverhead.size(); i++) {
+//    temp = temp + protocolOverhead[i];
+//  }
+//  double avg = temp/(double)protocolOverhead.size();
+ // std::cout << avgOverhead << "\n";
+  
+ 
+
+//  outConsumedEnergyFile
+  char *newOverheadFile = convertStrToChar(outOverheadFile);
+  
+  FILE *overheadFile;
+  overheadFile = fopen(newOverheadFile, "a+");
+
+  if (overheadFile != NULL){
+    fprintf(overheadFile,"%f\n", avgOverhead);  
   }
-  double avg = temp/(double)protocolOverhead.size();
-  std::cout << avg;
+  fclose(overheadFile);
+  
+  
+  double totalEnergy = 0.0;
+  for (uint32_t i = 0; i < numNodes; i++) {
+    Ptr<GossipGenerator> gossipApp2 = GetGossipApp(wifiNodes.Get(i));
+    std::vector<double> rxDataTime = gossipApp2->GetRxDataTime();
+    uint32_t rxPktNum = rxDataTime.size();
+
+    Ptr<BasicEnergySource> basicSourcePtr = DynamicCast<BasicEnergySource>(sources.Get(i));
+    Ptr<DeviceEnergyModel> basicRadioModelPtr = basicSourcePtr->FindDeviceEnergyModels("ns3::WifiRadioEnergyModel").Get(0);
+    NS_ASSERT (basicRadioModelPtr != NULL);
+    
+//    std::cout << "Total energy consumption of node " << i << " is " << basicRadioModelPtr->GetTotalEnergyConsumption() << " J" << std::endl;
+    double energyConsumption = basicRadioModelPtr->GetTotalEnergyConsumption();
+    double energyConsumptionPerPkt = energyConsumption / rxPktNum;
+//    std::cout << energyConsumption << " " << energyConsumptionPerPkt << std::endl;
+    totalEnergy = totalEnergy + energyConsumptionPerPkt;
+  }
+//  std::cout << "Total energy consumption was " << totalEnergy << std::endl;
+  double avgEnergyConsumptionPerPkt = totalEnergy / numNodes;
+//  std::cout << "Average energy consumption per pkt was " << avgEnergyConsumptionPerPkt << std::endl;
+  
+  //  outConsumedEnergyFile
+  char *newConsumedEnergyFile = convertStrToChar(outConsumedEnergyFile);
+  
+  FILE *consumedEnergyFile;
+  consumedEnergyFile = fopen(newConsumedEnergyFile, "a+");
+
+  if (consumedEnergyFile != NULL){
+    fprintf(consumedEnergyFile,"%f\n", avgEnergyConsumptionPerPkt);  
+  }
+  fclose(consumedEnergyFile);
+
+  
+  
+//  Ptr<BasicEnergySource> basicSourcePtr = DynamicCast<BasicEnergySource>(sources.Get(0));
+//  Ptr<DeviceEnergyModel> basicRadioModelPtr = basicSourcePtr->FindDeviceEnergyModels("ns3::WifiRadioEnergyModel").Get(0);
+//  NS_ASSERT (basicRadioModelPtr != NULL);
+//  std::cout << "Total energy consumption of node " << i << " is " << basicRadioModelPtr->GetTotalEnergyConsumption() << " J" << std::endl;
+
   
   Simulator::Destroy ();
   return 0;

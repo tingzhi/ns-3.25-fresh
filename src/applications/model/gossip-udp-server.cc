@@ -195,11 +195,11 @@ void
 GossipUdpServer::CheckBroadcastStatus (void) {
   if (m_StoreAck.size() == m_NodeNumber) {
     m_broadcastStatus = true;
-    std::cout << "Ack vector content is: ";
-    for (uint32_t i = 0; i < m_StoreAck.size(); i++) {
-      std::cout << m_StoreAck[i] << " | ";
-    }
-    std::cout << "\n";
+//    std::cout << "Ack vector content is: ";
+//    for (uint32_t i = 0; i < m_StoreAck.size(); i++) {
+//      std::cout << m_StoreAck[i] << " | ";
+//    }
+//    std::cout << "\n";
     m_StoreAck.clear();
   }
   else {
@@ -214,11 +214,11 @@ void
 GossipUdpServer::CheckBroadcastStatus2 (void) {
   if ((m_StoreAck.size() == m_NodeNumber) && (IsUnique() == true)) {
     m_broadcastStatus = true;
-    std::cout << "Ack vector content is: ";
-    for (uint32_t i = 0; i < m_StoreAck.size(); i++) {
-      std::cout << m_StoreAck[i] << " | ";
-    }
-    std::cout << "\n";
+//    std::cout << "Ack vector content is: ";
+//    for (uint32_t i = 0; i < m_StoreAck.size(); i++) {
+//      std::cout << m_StoreAck[i] << " | ";
+//    }
+//    std::cout << "\n";
     m_StoreAck.clear();
   } 
   else{

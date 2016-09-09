@@ -40,7 +40,7 @@ GossipGenerator::GossipGenerator () {
   isNew = false;
   CurrentValue = 0;
   seqNum = 0;
-//  SentMessages = 0;
+  SentMessages = 0;
   SentAck = 0;
   SentSolicit = 0;
   SentPayload = 0;
