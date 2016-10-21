@@ -255,7 +255,7 @@ RemainingEnergy (std::string context, double oldValue, double remainingEnergy)
 {
 //  NS_LOG_UNCOND ("Context:" << context << " --- " << Simulator::Now ().GetSeconds ()
 //                 << "s Current remaining energy = " << remainingEnergy << "J");
-  if (remainingEnergy <= 107) {
+  if (remainingEnergy <= 10.8) {
     NS_LOG_UNCOND ("Context:" << context << " --- " << Simulator::Now ().GetSeconds ()
                  << "s Current remaining energy = " << remainingEnergy << "J");
 //    std::cout << "Stopped simulation at " << Simulator::Now().GetSeconds() << std::endl;
@@ -510,8 +510,8 @@ main (int argc, char *argv[])
   bool tracing = false;
   double maxRange = 50;
   uint32_t numNodes = 10;  // !!!BUG!!!, any number less than 10 will result in a memory violation.
-  double simulationTime = 10000.0; // seconds
-  double initialEnergy = 1080.0; // J  // 500mAh = 5400J  100mAh = 1080J
+  double simulationTime = 100000.0; // seconds
+  double initialEnergy = 108.0; // J  // 500mAh = 5400J  100mAh = 1080J
   
   Time GossipInterval = Seconds(1.0); // Must be larger than the round-trip-time! (c.f. LinkDelay)
   Time SolicitInterval = Seconds(5.0); //not planning on using this attribute
@@ -531,7 +531,6 @@ main (int argc, char *argv[])
   std::string outConsumedEnergyFile = "consumedEnergy.txt";
   
   
-
   CommandLine cmd;
   cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
   cmd.AddValue ("numNodes", "number of nodes", numNodes);
@@ -659,6 +658,12 @@ main (int argc, char *argv[])
   EnergySourceContainer sources = basicSourceHelper.Install (wifiNodes);
   WifiRadioEnergyModelHelper radioEnergyHelper;
   //radioEnergyHelper.Set ("TxCurrentA", DoubleValue (0.0174));
+  
+  radioEnergyHelper.Set("IdleCurrentA", DoubleValue(0.0));
+  radioEnergyHelper.Set("SleepCurrentA", DoubleValue(0.0));
+  radioEnergyHelper.Set("TxCurrentA", DoubleValue(0.38));
+  radioEnergyHelper.Set("RxCurrentA", DoubleValue(0.313));
+
   DeviceEnergyModelContainer deviceModels = radioEnergyHelper.Install (wifiDevices, sources);
 
   //Ptr<BasicEnergySource> energySource = DynamicCast<BasicEnergySource> (sources.Get(0));

@@ -263,7 +263,11 @@ GossipGenerator::StoreReceivedDataTime (bool newData, Time receivedDataTime) {
 std::vector<int>
 GossipGenerator::ChooseNeighbors () {
   int in, im;
-  int fanout = (int)calFanout();
+//  int fanout = (int)calFanout();  // adaptive
+  unsigned int fixFanout = 1;
+  
+  unsigned int temp = (unsigned int) std::min(fixFanout, (unsigned int)neighbours[1].size());
+  int fanout = (int) temp;
   int neighborSize = (int)neighbours[1].size();
   
   im = 0;
